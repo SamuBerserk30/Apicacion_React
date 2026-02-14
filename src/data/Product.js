@@ -20,7 +20,7 @@ export const products = [
     name: 'Auriculares Sony WH-1000XM4',
     category: 'Audio',
     price: 1200000,
-    image: '',
+    image: 'src/assets/auriculares.jpg',
     description: 'Audifonos Sony WH-1000XM4 con cancelación de ruido, sonido de alta calidad y batería de larga duración. Perfectos para música y llamadas.'
  },
  {
@@ -28,7 +28,7 @@ export const products = [
     name: 'Smartwatch Apple Watch Series 6',
     category: 'Wearables',
     price: 2500000,
-    image: '',
+    image: 'src/assets/reloj.jpg',
     description: 'Smartwatch Apple Watch Series 6 con monitoreo de salud, GPS integrado y resistencia al agua. Ideal para mantenerse conectado y activo durante todo el día.'
  }
 ]
