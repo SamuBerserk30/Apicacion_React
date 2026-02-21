@@ -52,6 +52,12 @@
   flex: 1;
 }
 
+.productStock {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #374151;
+}
+
 .productFooter {
   display: flex;
   justify-content: space-between;
@@ -75,7 +81,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .btnLike:hover {
@@ -93,4 +99,38 @@
 
 .btnLike.liked:hover {
   background: #fecaca;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btnEdit,
+.btnDelete {
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btnEdit {
+  background: var(--primary);
+  color: white;
+}
+
+.btnEdit:hover {
+  background: var(--primary-dark);
+}
+
+.btnDelete {
+  background: var(--danger);
+  color: white;
+}
+
+.btnDelete:hover {
+  filter: brightness(0.95);
 }

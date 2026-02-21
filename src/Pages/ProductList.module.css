@@ -18,9 +18,35 @@
 
 .subtitle {
   font-size: 1.125rem;
-  color: #c0cbe0;
+  color: #e8edf7;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+
+.btnAdd {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btnAdd:hover {
+  background: var(--primary-dark);
+}
+
+.btnAdd:focus-visible {
+  outline: 3px solid var(--gray-200);
+  outline-offset: 2px;
 }
 
 .grid {
@@ -43,5 +69,9 @@
   .grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .toolbar {
+    justify-content: center;
   }
 }
