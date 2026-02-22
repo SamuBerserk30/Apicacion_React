@@ -7,10 +7,14 @@ import ProductForm from "../components/ProductForm";
 function ProductList() {
     const [productsState, setProductsState] = useState(products);
 
-const handleAddProduct = (product) => {
-  setProductsState((prev) => {
+    const handleAddProduct = (product) => {
+    setProductsState((prev) => {
     const maxId = prev.reduce((acc, item) => Math.max(acc, item.id), 0);
     const nextId = maxId + 1;
+
+    const handleDeleteProduct = (id) => {
+    setProductsState((prev) => prev.filter((product) => product.id !== id));
+     };
 
     return [...prev, { ...product, id: nextId }];
   });
@@ -35,6 +39,7 @@ const handleAddProduct = (product) => {
                         stock={product.stock}
                         image={product.image}
                         description={product.description}
+                        onDelete={() => handleDeleteProduct(product.id)}
                     />
                 ))}
             </div>
