@@ -120,10 +120,17 @@
 .btnEdit {
   background: var(--primary);
   color: white;
+  background-color: rgb(88, 88, 225);
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
 }
-
 .btnEdit:hover {
-  background: var(--primary-dark);
+    filter: brightness(0.95);
+  background-color: rgb(60, 60, 190);
 }
 
 .btnDelete {

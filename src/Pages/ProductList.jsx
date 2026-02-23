@@ -12,13 +12,32 @@ function ProductList() {
     const maxId = prev.reduce((acc, item) => Math.max(acc, item.id), 0);
     const nextId = maxId + 1;
 
+       return [...prev, { ...product, id: nextId }];
+  });
+};
+
     const handleDeleteProduct = (id) => {
     setProductsState((prev) => prev.filter((product) => product.id !== id));
      };
 
-    return [...prev, { ...product, id: nextId }];
-  });
-};
+    const [editingProduct, setEditingProduct] = useState(null);
+
+    const handleEditStart = (product) => {
+    setEditingProduct(product);
+    };
+
+    const handleEditCancel = () => {
+    setEditingProduct(null);
+    };
+
+    const handleEditSubmit = (updatedProduct) => {
+    setProductsState((prev) =>
+    prev.map((product) =>
+    product.id === updatedProduct.id ? updatedProduct : product,
+    ),
+    );
+    setEditingProduct(null);
+    };
 
     return (
         <div className={styles.container}>
@@ -28,7 +47,12 @@ function ProductList() {
                     Encuentra los mejores productos de tecnologia pra tu setup
                 </p>
             </header>
-            <ProductForm onSubmit={handleAddProduct} />
+            <ProductForm
+            initialValues={editingProduct}
+            isEditing={Boolean(editingProduct)}
+            onCancel={handleEditCancel}
+            onSubmit={editingProduct ? handleEditSubmit : handleAddProduct}
+            />
             <div className={styles.grid}>
                 {productsState.map((product) => (
                     <ProductCard
@@ -39,6 +63,7 @@ function ProductList() {
                         stock={product.stock}
                         image={product.image}
                         description={product.description}
+                        onEdit={() => handleEditStart(product)}
                         onDelete={() => handleDeleteProduct(product.id)}
                     />
                 ))}
