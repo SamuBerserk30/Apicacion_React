@@ -41,6 +41,7 @@ function ProductList() {
     handleCloseForm();
     };
 
+    // Controla si el formulario de creación/edición está abierto o cerrado
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     const handleOpenCreate = () => {
