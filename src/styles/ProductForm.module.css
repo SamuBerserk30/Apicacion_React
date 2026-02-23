@@ -71,10 +71,12 @@
   font-weight: 900;
   background: var(--primary);
   color: white;
+  background-color: rgb(88, 88, 225);
 }
 
 .btnPrimary:hover {
   background: var(--primary-dark);
+  background-color: rgb(67, 67, 189);
 }
 
 .btnSecondary {
