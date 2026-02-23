@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { products } from '../data/Product';
 import ProductCard from '../components/ProductCard';
 import styles from './ProductList.module.css';
@@ -71,6 +71,17 @@ function ProductList() {
     setIsFormOpen(false);
     };
 
+    useEffect(() => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(productsState));
+  } catch (error) {
+    void error;
+  }
+}, [productsState]);
 
     return (
         <div className={styles.container}>
