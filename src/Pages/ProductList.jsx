@@ -5,7 +5,24 @@ import styles from './ProductList.module.css';
 import ProductForm from "../components/ProductForm";
 
 function ProductList() {
-    const [productsState, setProductsState] = useState(products);
+    const STORAGE_KEY = "products";
+    const [productsState, setProductsState] = useState(() => {
+  if (typeof window === "undefined") {
+    return products;
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    return products;
+  }
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : products;
+  } catch {
+    return products;
+  }
+ });
 
     const handleAddProduct = (product) => {
     setProductsState((prev) => {
@@ -53,7 +70,7 @@ function ProductList() {
     setEditingProduct(null);
     setIsFormOpen(false);
     };
-    
+
 
     return (
         <div className={styles.container}>
