@@ -1,28 +1,15 @@
 import { useEffect, useState } from "react";
-import { products } from '../data/Product';
 import ProductCard from '../components/ProductCard';
 import styles from './ProductList.module.css';
+import { loadProducts, PRODUCTS_STORAGE_KEY } from '../utils/productsStorage';
 import ProductForm from "../components/ProductForm";
 
+const STORAGE_KEY = PRODUCTS_STORAGE_KEY;
+
 function ProductList() {
-    const STORAGE_KEY = "products";
-    const [productsState, setProductsState] = useState(() => {
-  if (typeof window === "undefined") {
-    return products;
-  }
-
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    return products;
-  }
-
-  try {
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : products;
-  } catch {
-    return products;
-  }
- });
+    const [productsState, setProductsState] = useState(loadProducts);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
 
     const handleAddProduct = (product) => {
     setProductsState((prev) => {
@@ -36,8 +23,6 @@ function ProductList() {
     const handleDeleteProduct = (id) => {
     setProductsState((prev) => prev.filter((product) => product.id !== id));
     };
-
-    const [editingProduct, setEditingProduct] = useState(null);
 
     const handleEditStart = (product) => {
     setEditingProduct(product);
@@ -59,7 +44,6 @@ function ProductList() {
     };
 
     // Controla si el formulario de creación/edición está abierto o cerrado
-    const [isFormOpen, setIsFormOpen] = useState(false);
 
     const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -117,6 +101,7 @@ function ProductList() {
                                 name={product.name}
                                 category={product.category}
                                 price={product.price}
+                                rating={product.rating}
                                 stock={product.stock}
                                 image={product.image}
                                 description={product.description}
