@@ -3,6 +3,7 @@ import ProductCard from '../components/ProductCard';
 import styles from './ProductList.module.css';
 import { loadProducts, PRODUCTS_STORAGE_KEY } from '../utils/productsStorage';
 import ProductForm from "../components/ProductForm";
+import ProductDetailsModal from "../components/ProductDetailsModal";
 
 const STORAGE_KEY = PRODUCTS_STORAGE_KEY;
 
@@ -107,6 +108,7 @@ function ProductList() {
                                 description={product.description}
                                 onDelete={() => handleDeleteProduct(product.id)}
                                 onEdit={() => handleEditStart(product)}
+                                onDetails={() => (product)}
                             />
                         ))}
                     </div>

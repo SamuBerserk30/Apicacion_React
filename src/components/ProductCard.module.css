@@ -58,6 +58,11 @@
   color: #374151;
 }
 
+.productRating {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #374151;
+}
 .productFooter {
   display: flex;
   justify-content: space-between;
@@ -108,6 +113,7 @@
 }
 
 .btnEdit,
+.btnDetails,
 .btnDelete {
   border: none;
   padding: 0.5rem 0.75rem;
@@ -115,6 +121,15 @@
   font-size: 0.875rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.btnDetails {
+  background: var(--gray-100);
+  color: var(--gray-900);
+}
+
+.btnDetails:hover {
+  background: var(--gray-200);
 }
 
 .btnEdit {
