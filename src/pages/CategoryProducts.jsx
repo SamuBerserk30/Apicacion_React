@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import styles from '../styles/CategoryProducts.module.css';
-import productListStyles from '../styles/ProductList.module.css';
+import productListStyles from '../pages/ProductList.module.css';
 import { loadProducts } from '../utils/productsStorage';
 
 function CategoryProducts({ category, onBack }) {
