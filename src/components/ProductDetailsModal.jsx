@@ -57,7 +57,7 @@ function ProductDetailsModal({ isOpen, product, onClose }) {
             <div className={styles.meta}>
               <div className={styles.metaItem}>
                 <span className={styles.metaLabel}>Precio</span>
-                <span className={styles.metaValue}>{formatCOP(product.price)}</span>
+                <span className={styles.metaValue}>${product.price.toFixed(2)}</span>
               </div>
 
               <div className={styles.metaItem}>
