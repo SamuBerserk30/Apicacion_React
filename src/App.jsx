@@ -1,27 +1,49 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-import "./App.css";
+import Footer from './components/Footer';
+import Header from './components/Header';
+import Cart from './pages/Cart';
+import CategoryProducts from './pages/CategoryProducts';
+import Home from './pages/Home';
+import ProductList from './pages/ProductList';
 
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-
-import Cart from "./pages/Cart";
-import Home from "./pages/Home";
-import ProductList from "./pages/ProductList";
+import './App.css';
 
 function App() {
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState('home');
   const [user, setUser] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const handleNavigate = (page) => {
+    setActivePage(page);
+
+    if (page !== 'category') {
+      setSelectedCategory(null);
+    }
+  };
+
+  const handleOpenCategory = (category) => {
+    setSelectedCategory(category);
+    setActivePage('category');
+  };
+
+  const handleBackFromCategory = () => {
+    setSelectedCategory(null);
+    setActivePage('home');
+  };
 
   const page = useMemo(() => {
-    if (activePage === "products") return <ProductList />;
-    if (activePage === "cart") return <Cart />;
+    if (activePage === 'category') {
+      return <CategoryProducts category={selectedCategory} onBack={handleBackFromCategory} />;
+    }
+    if (activePage === 'products') return <ProductList />;
+    if (activePage === 'cart') return <Cart />;
 
-    return <Home />;
-  }, [activePage]);
+    return <Home onOpenCategory={handleOpenCategory} />;
+  }, [activePage, selectedCategory]);
 
   const handleSignIn = () => {
-    setUser({ name: "Usuario" });
+    setUser({ name: 'Usuario' });
   };
 
   const handleSignOut = () => {
@@ -32,7 +54,7 @@ function App() {
     <div className="app">
       <Header
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={handleNavigate}
         user={user}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
