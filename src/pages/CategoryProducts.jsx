@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
@@ -6,11 +7,18 @@ import styles from '../styles/CategoryProducts.module.css';
 import productListStyles from '../pages/ProductList.module.css';
 import { loadProducts } from '../utils/productsStorage';
 
-function CategoryProducts({ category, onBack }) {
+function CategoryProducts({ cartItems, onAddToCart }) {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productsState] = useState(loadProducts);
+  const navigate = useNavigate();
+  const { categoryName } = useParams;
+
+  const category = useMeno(
+    () => (categoryName ? decodeURIComponent(categoryName) : null),
+    [categoryName] 
+  )
 
   const filteredProducts = useMemo(() => {
     if (!category) return [];
@@ -76,6 +84,10 @@ function CategoryProducts({ category, onBack }) {
               image={product.image}
               description={product.description}
               onDetails={() => handleOpenDetails(product)}
+              onAddToCart={() => {
+                onAddToCart(product.id, 1);
+                alert(`${ptoduct.name} agregando al carrito `)
+              }}
             />
           ))}
         </div>
