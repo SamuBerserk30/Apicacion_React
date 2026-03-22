@@ -115,7 +115,6 @@ function ProductList() {
                 description={product.description}
                 onDelete={() => handleDeleteProduct(product.id)}
                 onEdit={() => handleEditStart(product)}
-                onDetails={() => handleOpenDetails(product)}
               />
             ))}
           </div>

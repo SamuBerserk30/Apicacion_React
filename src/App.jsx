@@ -87,6 +87,14 @@ function App() {
   const handleClearCart = () => {
     setCartItems([]);
   };
+
+  const handleSignIn = () => {
+  setUser({ name: 'Usuario' });
+};
+
+const handleSignOut = () => {
+  setUser(null);
+};
   
   return (
     <div className="app">

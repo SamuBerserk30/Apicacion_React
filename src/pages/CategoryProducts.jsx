@@ -13,9 +13,9 @@ function CategoryProducts({ cartItems, onAddToCart }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productsState] = useState(loadProducts);
   const navigate = useNavigate();
-  const { categoryName } = useParams;
+  const { categoryName } = useParams();
 
-  const category = useMeno(
+  const category = useMemo(
     () => (categoryName ? decodeURIComponent(categoryName) : null),
     [categoryName] 
   )
@@ -48,7 +48,7 @@ function CategoryProducts({ cartItems, onAddToCart }) {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <button type="button" className={styles.btnBack} onClick={onBack}>
+        <button type="button" className={styles.btnBack} onClick={() => navigate(-1)}> 
           Volver
         </button>
 
@@ -85,8 +85,8 @@ function CategoryProducts({ cartItems, onAddToCart }) {
               description={product.description}
               onDetails={() => handleOpenDetails(product)}
               onAddToCart={() => {
-                onAddToCart(product.id, 1);
-                alert(`${ptoduct.name} agregando al carrito `)
+                onAddToCart(product);
+                alert(`${product.name} agregado al carrito`)
               }}
             />
           ))}

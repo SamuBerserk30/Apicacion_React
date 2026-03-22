@@ -1,4 +1,4 @@
-import { products as seedProducts } from '../data/product.js';
+import { products as seedProducts } from '../data/Product.js';
 
 const STORAGE_KEY = 'products';
 const DEFAULT_RATING = 3;

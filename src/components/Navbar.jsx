@@ -12,7 +12,7 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut }) {
   const isHomeActive = location.pathname === "/" || location.pathname.startsWith('/category')
   const isProductsActive = location.pathname === "/products";
   const isCartActive =
-    location.pathname === "/Cart" ||
+    location.pathname === "/cart" ||
     location.pathname === "/checkout" ||
     location.pathname === "/order-confirmation";
 
@@ -27,21 +27,21 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut }) {
         <button
           type="button"
           className={`${styles.link} ${isHomeActive ? styles.active : ""}`}
-          onClick={() => Navigate("home")}
+          onClick={() => Navigate("/")}
         >
           Inicio
         </button>
         <button
           type="button"
           className={`${styles.link} ${isProductsActive ? styles.active : ""}`}
-          onClick={() => Navigate("products")}
+          onClick={() => Navigate("/products")}
         >
           Productos
         </button>
         <button
           type="button"
           className={`${styles.link} ${isCartActive ? styles.active : ""}`}
-          onClick={() => Navigate("cart")}
+          onClick={() => Navigate("/cart")}
         >
           Carrito
         </button>
