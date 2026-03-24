@@ -3,7 +3,7 @@ import styles from "../styles/Navbar.module.css";
 
 import logo from "../assets/react.svg";
 
-function Navbar({ onNavigate, user, onSignIn, onSignOut }) {
+function Navbar({ onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
   const userLabel = user?.name ?? "Invitado";
   const isLoggedIn = Boolean(user);
   const Navigate = useNavigate();
@@ -44,6 +44,7 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut }) {
           onClick={() => Navigate("/cart")}
         >
           Carrito
+         {cartItemCount > 0 ? <span className={styles.cartBadge}>{cartItemCount}</span> : null}
         </button>
       </div>
 
