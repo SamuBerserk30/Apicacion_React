@@ -20,6 +20,11 @@ function CategoryProducts({ cartItems, onAddToCart }) {
     [categoryName] 
   )
 
+    const cartQuantityByProductId = useMemo(
+    () => new Map(cartItems.map((item) => [item.id, item.quantity])),
+    [cartItems]
+  );
+
   const filteredProducts = useMemo(() => {
     if (!category) return [];
 
@@ -76,6 +81,7 @@ function CategoryProducts({ cartItems, onAddToCart }) {
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
+              id={product.id}
               name={product.name}
               category={product.category}
               rating={product.rating}
@@ -83,11 +89,9 @@ function CategoryProducts({ cartItems, onAddToCart }) {
               stock={product.stock}
               image={product.image}
               description={product.description}
+              onAddToCart={onAddToCart}
+              disableAddToCart={(cartQuantityByProductId.get(product.id) ?? 0) >= product.stock}
               onDetails={() => handleOpenDetails(product)}
-              onAddToCart={() => {
-                onAddToCart(product);
-                alert(`${product.name} agregado al carrito`)
-              }}
             />
           ))}
         </div>
