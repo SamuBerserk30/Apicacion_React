@@ -28,6 +28,7 @@
 
 .btnContinue,
 .btnClear,
+.btnCheckout,
 .btnRemove,
 .btnQuantity {
   border: none;
@@ -221,6 +222,18 @@
 
 .btnClear:hover:not(:disabled) {
   background: #101828;
+}
+
+.btnCheckout {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.95rem 1rem;
+  background: var(--primary);
+  color: white;
+}
+
+.btnCheckout:hover {
+  background: var(--primary-dark);
 }
 
 .btnClear:disabled {
