@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import styles from '../styles/Cart.module.css';
+import { calculateCartSubtotal } from '../utils/calculateOrderTotals';
 
 function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -62,7 +63,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
                   <div className={styles.itemInfo}>
                     <span className={styles.category}>{item.category}</span>
                     <h2 className={styles.name}>{item.name}</h2>
-                    <p className={styles.price}>Precio unitario: ${price.toFixed(2)}</p>
+                    <p className={styles.price}>Precio unitario:${price.toFixed(2)}</p>
                     <p className={styles.stock}>Stock disponible: {item.stock}</p>
                     <p className={styles.subtotal}>
                       <span className={styles.subtotalLabel}>Subtotal:</span>{' '}
