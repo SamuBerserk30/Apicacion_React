@@ -3,6 +3,7 @@ import { useState } from 'react';
 import styles from './ProductCard.module.css';
 
 function ProductCard({
+  id,
   name,
   category,
   price,
@@ -10,9 +11,11 @@ function ProductCard({
   image,
   description,
   rating,
+  onAddToCart,
   onDetails,
   onEdit,
   onDelete,
+  disableAddToCart = false,
 }) {
   const [likes, setLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -39,7 +42,7 @@ function ProductCard({
         <p className={styles.productDescription}>{description}</p>
         <p className={styles.productStock}>Stock: {stock}</p>
         <div className={styles.productFooter}>
-          <span className={styles.productPrice}>{price.toFixed(2)}</span>
+          <span className={styles.productPrice}>${price.toFixed(2)}</span>
           <button
             className={`${styles.btnLike} ${isLiked ? styles.liked : ''}`}
             onClick={handleLike}
@@ -48,8 +51,19 @@ function ProductCard({
           </button>
         </div>
 
-        {onDetails || onEdit || onDelete ? (
+        {onAddToCart || onDetails || onEdit || onDelete ? (
           <div className={styles.cardActions}>
+            {onAddToCart ? (
+              <button
+                type="button"
+                className={styles.btnAddToCart}
+                onClick={() => onAddToCart({ id, name, category, price, stock, image })}
+                disabled={disableAddToCart}
+              >
+                {disableAddToCart ? 'Stock agotado en carrito' : 'Agregar al carrito'}
+              </button>
+            ) : null}
+
             {onDetails ? (
               <button type="button" className={styles.btnDetails} onClick={onDetails}>
                 Más información
