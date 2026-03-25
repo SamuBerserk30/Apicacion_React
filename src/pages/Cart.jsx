@@ -1,8 +1,11 @@
+import { useNavigate } from 'react-router-dom';
+
 import styles from '../styles/Cart.module.css';
 
-function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContinueShopping }) {
+function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = calculateCartSubtotal(cartItems);
+  const navigate = useNavigate();
 
   if (cartItems.length === 0) {
     return (
@@ -13,7 +16,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContin
             <p className={styles.subtitle}>Todavía no tienes productos agregados.</p>
           </div>
 
-          <button type="button" className={styles.btnContinue} onClick={onContinueShopping}>
+          <button type="button" className={styles.btnContinue} onClick={() => navigate('/')}>
             Seguir comprando
           </button>
         </div>
@@ -23,7 +26,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContin
           <p className={styles.emptyText}>
             Vuelve al catálogo, entra a una categoría y agrega productos para continuar.
           </p>
-          <button type="button" className={styles.btnContinue} onClick={onContinueShopping}>
+          <button type="button" className={styles.btnContinue} onClick={() => navigate('/')}>
             Ir al inicio
           </button>
         </div>
@@ -41,7 +44,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContin
           </p>
         </div>
 
-        <button type="button" className={styles.btnContinue} onClick={onContinueShopping}>
+        <button type="button" className={styles.btnContinue} onClick={() => navigate('/')}>
           Seguir comprando
         </button>
       </div>
@@ -124,6 +127,14 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContin
 
           <button type="button" className={styles.btnClear} onClick={onClearCart}>
             Vaciar carrito
+          </button>
+
+          <button
+            type="button"
+            className={styles.btnCheckout}
+            onClick={() => navigate('/checkout')}
+          >
+            Proceder al checkout
           </button>
         </aside>
       </div>
