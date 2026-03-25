@@ -151,7 +151,7 @@ function App() {
             path="/category/:categoryName"
             element={<CategoryProducts cartItems={cartItems} onAddToCart={handleAddToCart} />}
           />
-          <Route path="/products" element={<ProductList />} />
+           <Route path="/products" element={<ProductList />} />
           <Route
             path="/cart"
             element={

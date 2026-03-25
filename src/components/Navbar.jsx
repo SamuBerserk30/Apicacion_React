@@ -6,7 +6,7 @@ import logo from "../assets/react.svg";
 function Navbar({ onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
   const userLabel = user?.name ?? "Invitado";
   const isLoggedIn = Boolean(user);
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
 
   const isHomeActive = location.pathname === "/" || location.pathname.startsWith('/category')
@@ -27,21 +27,21 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
         <button
           type="button"
           className={`${styles.link} ${isHomeActive ? styles.active : ""}`}
-          onClick={() => Navigate("/")}
+          onClick={() => navigate("/")}
         >
           Inicio
         </button>
         <button
           type="button"
           className={`${styles.link} ${isProductsActive ? styles.active : ""}`}
-          onClick={() => Navigate("/products")}
+          onClick={() => navigate("/products")}
         >
           Productos
         </button>
         <button
           type="button"
           className={`${styles.link} ${isCartActive ? styles.active : ""}`}
-          onClick={() => Navigate("/cart")}
+          onClick={() => navigate("/cart")}
         >
           Carrito
          {cartItemCount > 0 ? <span className={styles.cartBadge}>{cartItemCount}</span> : null}

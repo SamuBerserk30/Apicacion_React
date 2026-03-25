@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import styles from '../styles/CategoryProducts.module.css';
-import productListStyles from '../pages/ProductList.module.css';
+import productListStyles from './ProductList.module.css';
 import { loadProducts } from '../utils/productsStorage';
 
 function CategoryProducts({ cartItems, onAddToCart }) {
