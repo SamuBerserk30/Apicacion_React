@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import homeStyles from '../styles/Home.module.css';
 import { loadProducts } from '../utils/productsStorage';
 
-function Home({ onOpenCategory }) {
+function Home() {
   const [productsState] = useState(loadProducts);
   const navigate = useNavigate();
 
