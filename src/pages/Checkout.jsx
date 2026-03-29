@@ -168,7 +168,7 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
                 <div>
                   <strong>{option.label}</strong>
                   <p>{option.description}</p>
-                  <span>{formatCOP(option.price)}</span>
+                  <span>${option.price.toFixed(2)}</span>
                 </div>
               </label>
             ))}
@@ -211,19 +211,19 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
             </div>
             <div className={styles.summaryRow}>
               <span>Subtotal</span>
-              <span>{formatCOP(totals.subtotal)}</span>
+              <span>${totals.subtotal.toFixed(2)}</span>
             </div>
             <div className={styles.summaryRow}>
               <span>IVA (19%)</span>
-              <span>{formatCOP(totals.tax)}</span>
+              <span>${totals.tax.toFixed(2)}</span>
             </div>
             <div className={styles.summaryRow}>
               <span>Envio</span>
-              <span>{formatCOP(totals.shipping)}</span>
+              <span>${totals.shipping.toFixed(2)}</span>
             </div>
             <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
               <span>Total</span>
-              <span>{formatCOP(totals.total)}</span>
+              <span>${totals.total.toFixed(2)}</span>
             </div>
           </div>
         </aside>

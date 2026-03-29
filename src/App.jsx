@@ -178,10 +178,7 @@ function App() {
             element={
               <OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />
             }
-          />
-          <Route path="/user/profile" element={<UserProfile user={user} />} />
-          <Route path="/user/orders" element={<UserOrders />} />
-          <Route path="/user/orders/:orderId" element={<UserOrderDetail />} />
+            />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
