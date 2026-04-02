@@ -11,6 +11,7 @@ import {
 const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
 
 function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     fullName: user?.name ?? '',
     email: '',
@@ -82,6 +83,7 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
       shippingMethodId: values.shippingMethod,
       paymentMethodId: values.paymentMethod,
     });
+    navigate('/order-confirmation');
   };
 
   if (cartItems.length === 0) {

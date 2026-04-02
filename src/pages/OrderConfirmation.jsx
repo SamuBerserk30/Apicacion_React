@@ -1,6 +1,21 @@
+import { useNavigate } from 'react-router-dom';
+
 import styles from '../styles/OrderConfirmation.module.css';
 
+const formatCOP = (value) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+
 function OrderConfirmation({ order, onBackHome }) {
+  const navigate = useNavigate();
+  const handleBackHome = () => {
+    onBackHome();
+    navigate('/');
+  };
+
+  const handleViewOrders = () => {
+    navigate('/user/orders');
+  };
+
   if (!order) {
     return (
       <section className={styles.container}>
@@ -9,7 +24,7 @@ function OrderConfirmation({ order, onBackHome }) {
           <p className={styles.subtitle}>
             El checkout ya se cerró o no existe una compra para mostrar en esta vista.
           </p>
-          <button type="button" className={styles.primaryButton} onClick={onBackHome}>
+          <button type="button" className={styles.primaryButton} onClick={handleBackHome}>
             Volver al inicio
           </button>
         </div>
@@ -88,7 +103,7 @@ function OrderConfirmation({ order, onBackHome }) {
           </div>
         </section>
 
-        <button type="button" className={styles.primaryButton} onClick={onBackHome}>
+        <button type="button" className={styles.primaryButton} onClick={handleBackHome}>
           Volver al inicio
         </button>
       </div>

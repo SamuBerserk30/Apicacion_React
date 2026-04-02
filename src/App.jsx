@@ -169,6 +169,7 @@ function App() {
               <Checkout
                 cartItems={cartItems}
                 user={user}
+                onBack={() => Navigate('/cart')} 
                 onCompleteCheckout={handleCompleteCheckout}
               />
             }
