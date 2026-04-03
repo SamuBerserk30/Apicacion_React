@@ -15,7 +15,8 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
     location.pathname === "/cart" ||
     location.pathname === "/checkout" ||
     location.pathname === "/order-confirmation";
-
+    const isAccountActive = location.pathname.startsWith('/user');
+    
   return (
     <nav className={styles.navbar}>
       <div className={styles.brand}>
@@ -46,8 +47,14 @@ function Navbar({ onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
           Carrito
          {cartItemCount > 0 ? <span className={styles.cartBadge}>{cartItemCount}</span> : null}
         </button>
+                <button
+          type="button"
+          className={`${styles.link} ${isAccountActive ? styles.active : ''}`}
+          onClick={() => navigate('/user/profile')}
+        >
+          Mi cuenta
+        </button>
       </div>
-
       <div className={styles.auth}>
         <span className={styles.userName}>{userLabel}</span>
 
