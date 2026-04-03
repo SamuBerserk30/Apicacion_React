@@ -102,7 +102,9 @@ function OrderConfirmation({ order, onBackHome }) {
             <div className={styles.totalFinal}><span>Total</span><strong>{formatCOP(order.totals.total)}</strong></div>
           </div>
         </section>
-        
+        <button type="button" className={styles.secondaryButton} onClick={handleViewOrders}>
+          Ver mis órdenes
+        </button>
         <button type="button" className={styles.primaryButton} onClick={handleBackHome}>
           Volver al inicio
         </button>
