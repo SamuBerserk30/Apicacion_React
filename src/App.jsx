@@ -9,6 +9,9 @@ import Checkout from './pages/Checkout';
 import Home from './pages/Home';
 import OrderConfirmation from './pages/OrderConfirmation';
 import ProductList from './pages/ProductList';
+import OrderDetail from './pages/UserOrderDetail';
+import UserOrders from './pages/UserOrders';
+import UserProfile from './pages/UserProfile';
 import {
   calculateOrderTotals,
   getPaymentMethodById,
@@ -180,6 +183,9 @@ function App() {
               <OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />
             }
             />
+            <Route path="/user/profile" element={<UserProfile />} />
+            <Route path="/user/orders" element={<UserOrders />} />
+            <Route path="/user/orders/:orderId" element={<OrderDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
