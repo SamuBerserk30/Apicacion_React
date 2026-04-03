@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { loadOrders } from '../utils/ordersStorage';
-import styles from '../styles/OrderDetail.module.css';
+import styles from '../styles/UserOrderDetail.module.css';
 
 const formatCOP = (value) =>
   new Intl.NumberFormat('es-CO', {
