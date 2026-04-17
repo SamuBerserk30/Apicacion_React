@@ -7,9 +7,11 @@ import Cart from './pages/Cart';
 import CategoryProducts from './pages/CategoryProducts';
 import Checkout from './pages/Checkout';
 import Home from './pages/Home';
+import Login from './pages/Login';
 import OrderConfirmation from './pages/OrderConfirmation';
 import ProductList from './pages/ProductList';
 import OrderDetail from './pages/UserOrderDetail';
+import Register from './pages/Register';
 import UserOrders from './pages/UserOrders';
 import UserProfile from './pages/UserProfile';
 import {
