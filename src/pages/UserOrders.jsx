@@ -1,31 +1,42 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loadOrders } from '../utils/ordersStorage';
-import styles from '../styles/UserOrders.module.css';
 
-const formatCOP = (value) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(value);
+import useAuth from '../hooks/useAuth';
+import styles from '../styles/UserOrders.module.css';
 
 function UserOrders() {
   const navigate = useNavigate();
-  const orders = loadOrders();
+  const { currentUser } = useAuth();
+  const orders = useMemo(
+    () =>
+      loadOrdersByUserId(currentUser?.id).sort(
+        (leftOrder, rightOrder) => new Date(rightOrder.createdAt) - new Date(leftOrder.createdAt)
+      ),
+    [currentUser?.id]
+  );
 
   if (orders.length === 0) {
     return (
       <section className={styles.container}>
-        <h1 className={styles.title}>Mis órdenes</h1>
-        <div className={styles.empty}>
-          <p>No tienes compras registradas todavía.</p>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={() => navigate('/')}
-          >
-            Ir a comprar
-          </button>
+        <div className={styles.emptyState}>
+          <p className={styles.eyebrow}>Semana 11</p>
+          <h1 className={styles.title}>Mis ordenes</h1>
+          <p className={styles.subtitle}>
+            Todavía no hay compras asociadas a tu sesión. Completa el checkout autenticado para
+            poblar esta vista.
+          </p>
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => navigate('/user/profile')}
+            >
+              Ir al perfil
+            </button>
+            <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+              Explorar productos
+            </button>
+          </div>
         </div>
       </section>
     );
@@ -33,35 +44,38 @@ function UserOrders() {
 
   return (
     <section className={styles.container}>
-      <h1 className={styles.title}>Mis órdenes</h1>
-      <div className={styles.list}>
-        {orders.map((order) => {
-          const date = new Date(order.createdAt).toLocaleDateString('es-CO', {
-            dateStyle: 'medium',
-          });
-          const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>Semana 11</p>
+          <h1 className={styles.title}>Historial de ordenes</h1>
+          <p className={styles.subtitle}>
+            Recupera únicamente las compras del usuario autenticado y navega al detalle de cada
+            pedido.
+          </p>
+        </div>
 
-          return (
-            <article
-              key={order.id}
-              className={styles.card}
-              onClick={() => navigate(`/user/orders/${order.id}`)}
-            >
-              <div className={styles.cardHeader}>
-                <span className={styles.orderId}>{order.id}</span>
-                <span className={styles.date}>{date}</span>
-              </div>
-              <div className={styles.cardBody}>
-                <span>{itemCount} {itemCount === 1 ? 'producto' : 'productos'}</span>
-                <strong>{formatCOP(order.totals.total)}</strong>
-              </div>
-              <div className={styles.cardFooter}>
-                <span>{order.shippingMethod.label}</span>
-                <span>{order.paymentMethod.label}</span>
-              </div>
-            </article>
-          );
-        })}
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => navigate('/user/profile')}
+          >
+            Mi perfil
+          </button>
+          <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+            Volver al inicio
+          </button>
+        </div>
+      </header>
+
+      <div className={styles.list}>
+        {orders.map((order) => (
+          <OrderCard
+            key={order.id}
+            order={order}
+            onOpen={(orderId) => navigate(`/user/orders/${orderId}`)}
+          />
+        ))}
       </div>
     </section>
   );

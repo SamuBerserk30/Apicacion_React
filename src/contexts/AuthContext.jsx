@@ -52,6 +52,7 @@ function AuthProvider({ children }) {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
       phone: user.phone,
       address: user.address,
       city: user.city,
@@ -73,6 +74,7 @@ function AuthProvider({ children }) {
     () => ({
       currentUser,
       isAuthenticated: Boolean(currentUser),
+      isAdmin: currentUser?.role === 'admin',
       login,
       logout,
       register,

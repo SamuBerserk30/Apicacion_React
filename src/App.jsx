@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import Footer from './components/Footer';
 import Header from './components/Header';
+import useAuth from './hooks/useAuth';
 import Cart from './pages/Cart';
 import CategoryProducts from './pages/CategoryProducts';
 import Checkout from './pages/Checkout';
@@ -26,7 +27,7 @@ import { saveOrder } from './utils/ordersStorage';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const { currentUser } = useAuth();
   const [cartItems, setCartItems] = useState(loadCartItems);
   const [latestOrder, setLatestOrder] = useState(null);
 
@@ -133,26 +134,18 @@ function App() {
     [cartItems]
   );
 
-  const handleSignIn = () => {
-    setUser({ name: 'Usuario' });
-  };
-
-  const handleSignOut = () => {
-    setUser(null);
-  };
-
   return (
     <div className="app">
       <Header
-        user={user}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
+        user={currentUser}
         cartItemCount={cartItemCount}
       />
 
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/category/:categoryName"
             element={<CategoryProducts cartItems={cartItems} onAddToCart={handleAddToCart} />}
@@ -175,7 +168,7 @@ function App() {
             element={
               <Checkout
                 cartItems={cartItems}
-                user={user}
+                user={currentUser}
                 onBack={() => Navigate('/cart')} 
                 onCompleteCheckout={handleCompleteCheckout}
               />

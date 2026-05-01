@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.9);
   border-bottom: 1px solid var(--gray-200);
@@ -33,13 +33,16 @@
 }
 
 .link {
-  border: none;
   background: transparent;
   cursor: pointer;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   font-weight: 700;
   color: var(--gray-900);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .link:hover {
@@ -55,6 +58,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.guestActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .userName {
@@ -65,8 +76,7 @@
 .authBtn {
   border: none;
   background: var(--primary);
-  color: rgb(255, 255, 255);
-  background-color: rgb(88, 88, 225);
+  color: white;
   cursor: pointer;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
@@ -74,21 +84,21 @@
 }
 
 .authBtn:hover {
-  background-color: rgb(60, 60, 180);
-  color: rgb(255, 255, 255);
+  background: var(--primary-dark);
 }
 
-.link {
+.secondaryAuthBtn {
   border: none;
-  background: transparent;
+  background: white;
+  color: var(--primary-dark);
   cursor: pointer;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  font-weight: 700;
-  color: var(--gray-900);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
+  font-weight: 800;
+}
+
+.secondaryAuthBtn:hover {
+  background: var(--gray-100);
 }
 
 .cartBadge {
@@ -113,5 +123,9 @@
 
   .brand {
     min-width: auto;
+  }
+
+  .auth {
+    justify-content: flex-start;
   }
 }

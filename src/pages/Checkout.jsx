@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import styles from '../styles/Checkout.module.css';
@@ -10,19 +10,31 @@ import {
 
 const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
 
-function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
-  const navigate = useNavigate();
+function Checkout({ cartItems, user, onCompleteCheckout }) {
   const [values, setValues] = useState({
     fullName: user?.name ?? '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
+    email: user?.email ?? '',
+    phone: user?.phone ?? '',
+    address: user?.address ?? '',
+    city: user?.city ?? '',
+    postalCode: user?.postalCode ?? '',
     shippingMethod: SHIPPING_OPTIONS[0].id,
     paymentMethod: PAYMENT_METHODS[0].id,
   });
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setValues((currentValues) => ({
+      ...currentValues,
+      fullName: user?.name ?? currentValues.fullName,
+      email: user?.email ?? currentValues.email,
+      phone: user?.phone ?? currentValues.phone,
+      address: user?.address ?? currentValues.address,
+      city: user?.city ?? currentValues.city,
+      postalCode: user?.postalCode ?? currentValues.postalCode,
+    }));
+  }, [user]);
 
   const totals = useMemo(
     () => calculateOrderTotals(cartItems, values.shippingMethod),
@@ -71,7 +83,7 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
       return;
     }
 
-    onCompleteCheckout({
+    const order = onCompleteCheckout({
       customer: {
         fullName: values.fullName.trim(),
         email: values.email.trim(),
@@ -83,7 +95,12 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
       shippingMethodId: values.shippingMethod,
       paymentMethodId: values.paymentMethod,
     });
-    navigate('/order-confirmation');
+
+    if (order) {
+      navigate('/order-confirmation');
+    } else {
+      navigate('/cart');
+    }
   };
 
   if (cartItems.length === 0) {
@@ -94,7 +111,11 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
           <p className={styles.emptyText}>
             No hay productos en el carrito. Regresa para agregar artículos antes de continuar.
           </p>
-          <button type="button" className={styles.secondaryButton} onClick={onBack}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => navigate('/cart')}
+          >
             Volver al carrito
           </button>
         </div>
@@ -106,126 +127,200 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout }) {
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
+          <p className={styles.eyebrow}>Semana 08</p>
           <h1 className={styles.title}>Checkout</h1>
-          <p className={styles.subtitle}>Completa tus datos para finalizar el pedido.</p>
+          <p className={styles.subtitle}>
+            Completa los datos de entrega y confirma el pedido con un flujo de compra funcional.
+          </p>
         </div>
-        <button type="button" className={styles.secondaryButton} onClick={onBack}>
+
+        <button type="button" className={styles.secondaryButton} onClick={() => navigate('/cart')}>
           Volver al carrito
         </button>
       </header>
 
       <div className={styles.layout}>
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          <h2 className={styles.sectionTitle}>Datos del cliente</h2>
+        <form className={styles.formCard} onSubmit={handleSubmit}>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Datos del cliente</h2>
 
-          <label className={styles.field}>
-            <span>Nombre completo</span>
-            <input name="fullName" value={values.fullName} onChange={handleChange} />
-            {errors.fullName ? <small className={styles.error}>{errors.fullName}</small> : null}
-          </label>
-
-          <label className={styles.field}>
-            <span>Correo electronico</span>
-            <input name="email" value={values.email} onChange={handleChange} />
-            {errors.email ? <small className={styles.error}>{errors.email}</small> : null}
-          </label>
-
-          <label className={styles.field}>
-            <span>Telefono</span>
-            <input name="phone" value={values.phone} onChange={handleChange} />
-            {errors.phone ? <small className={styles.error}>{errors.phone}</small> : null}
-          </label>
-
-          <label className={styles.field}>
-            <span>Direccion</span>
-            <input name="address" value={values.address} onChange={handleChange} />
-            {errors.address ? <small className={styles.error}>{errors.address}</small> : null}
-          </label>
-
-          <div className={styles.grid2}>
-            <label className={styles.field}>
-              <span>Ciudad</span>
-              <input name="city" value={values.city} onChange={handleChange} />
-              {errors.city ? <small className={styles.error}>{errors.city}</small> : null}
-            </label>
-
-            <label className={styles.field}>
-              <span>Codigo postal</span>
-              <input name="postalCode" value={values.postalCode} onChange={handleChange} />
-              {errors.postalCode ? <small className={styles.error}>{errors.postalCode}</small> : null}
-            </label>
-          </div>
-
-          <h2 className={styles.sectionTitle}>Envio</h2>
-          <div className={styles.options}>
-            {SHIPPING_OPTIONS.map((option) => (
-              <label key={option.id} className={styles.optionCard}>
+            <div className={styles.fieldGrid}>
+              <label className={styles.field}>
+                <span className={styles.label}>Nombre completo</span>
                 <input
-                  type="radio"
-                  name="shippingMethod"
-                  value={option.id}
-                  checked={values.shippingMethod === option.id}
+                  className={styles.input}
+                  name="fullName"
+                  value={values.fullName}
                   onChange={handleChange}
+                  placeholder="Ejemplo: Ana Gómez"
                 />
-                <div>
-                  <strong>{option.label}</strong>
-                  <p>{option.description}</p>
-                  <span>${option.price.toFixed(2)}</span>
-                </div>
+                {errors.fullName ? <span className={styles.error}>{errors.fullName}</span> : null}
               </label>
-            ))}
-          </div>
-          {errors.shippingMethod ? (
-            <small className={styles.error}>{errors.shippingMethod}</small>
-          ) : null}
 
-          <h2 className={styles.sectionTitle}>Pago</h2>
-          <div className={styles.options}>
-            {PAYMENT_METHODS.map((option) => (
-              <label key={option.id} className={styles.optionCard}>
+              <label className={styles.field}>
+                <span className={styles.label}>Correo electrónico</span>
                 <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={option.id}
-                  checked={values.paymentMethod === option.id}
+                  className={styles.input}
+                  name="email"
+                  value={values.email}
                   onChange={handleChange}
+                  placeholder="correo@dominio.com"
+                  type="email"
                 />
-                <div>
-                  <strong>{option.label}</strong>
-                  <p>{option.description}</p>
-                </div>
+                {errors.email ? <span className={styles.error}>{errors.email}</span> : null}
               </label>
-            ))}
-          </div>
-          {errors.paymentMethod ? <small className={styles.error}>{errors.paymentMethod}</small> : null}
 
-          <button type="submit" className={styles.primaryButton}>
-            Confirmar pedido
-          </button>
+              <label className={styles.field}>
+                <span className={styles.label}>Teléfono</span>
+                <input
+                  className={styles.input}
+                  name="phone"
+                  value={values.phone}
+                  onChange={handleChange}
+                  placeholder="3001234567"
+                />
+                {errors.phone ? <span className={styles.error}>{errors.phone}</span> : null}
+              </label>
+
+              <label className={`${styles.field} ${styles.fieldWide}`}>
+                <span className={styles.label}>Dirección</span>
+                <input
+                  className={styles.input}
+                  name="address"
+                  value={values.address}
+                  onChange={handleChange}
+                  placeholder="Calle 10 # 20-30"
+                />
+                {errors.address ? <span className={styles.error}>{errors.address}</span> : null}
+              </label>
+
+              <label className={styles.field}>
+                <span className={styles.label}>Ciudad</span>
+                <input
+                  className={styles.input}
+                  name="city"
+                  value={values.city}
+                  onChange={handleChange}
+                  placeholder="Medellín"
+                />
+                {errors.city ? <span className={styles.error}>{errors.city}</span> : null}
+              </label>
+
+              <label className={styles.field}>
+                <span className={styles.label}>Código postal</span>
+                <input
+                  className={styles.input}
+                  name="postalCode"
+                  value={values.postalCode}
+                  onChange={handleChange}
+                  placeholder="050021"
+                />
+                {errors.postalCode ? (
+                  <span className={styles.error}>{errors.postalCode}</span>
+                ) : null}
+              </label>
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Método de envío</h2>
+            <div className={styles.optionList}>
+              {SHIPPING_OPTIONS.map((option) => (
+                <label key={option.id} className={styles.optionCard}>
+                  <input
+                    type="radio"
+                    name="shippingMethod"
+                    value={option.id}
+                    checked={values.shippingMethod === option.id}
+                    onChange={handleChange}
+                  />
+                  <div>
+                    <span className={styles.optionTitle}>{option.label}</span>
+                    <p className={styles.optionDescription}>{option.description}</p>
+                  </div>
+                  <strong className={styles.optionPrice}>{formatCOP(option.price)}</strong>
+                </label>
+              ))}
+            </div>
+            {errors.shippingMethod ? (
+              <span className={styles.error}>{errors.shippingMethod}</span>
+            ) : null}
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Método de pago</h2>
+            <div className={styles.optionList}>
+              {PAYMENT_METHODS.map((option) => (
+                <label key={option.id} className={styles.optionCard}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={option.id}
+                    checked={values.paymentMethod === option.id}
+                    onChange={handleChange}
+                  />
+                  <div>
+                    <span className={styles.optionTitle}>{option.label}</span>
+                    <p className={styles.optionDescription}>{option.description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {errors.paymentMethod ? (
+              <span className={styles.error}>{errors.paymentMethod}</span>
+            ) : null}
+          </section>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => navigate('/cart')}
+            >
+              Volver
+            </button>
+            <button type="submit" className={styles.primaryButton}>
+              Confirmar compra
+            </button>
+          </div>
         </form>
 
-        <aside className={styles.summary}>
-          <h2 className={styles.sectionTitle}>Resumen</h2>
-          <div className={styles.summaryRows}>
-            <div className={styles.summaryRow}>
-              <span>Productos</span>
-              <span>{cartItems.length}</span>
-            </div>
-            <div className={styles.summaryRow}>
+        <aside className={styles.summaryCard}>
+          <h2 className={styles.sectionTitle}>Resumen del pedido</h2>
+
+          <div className={styles.summaryList}>
+            {cartItems.map((item) => (
+              <article key={item.id} className={styles.summaryItem}>
+                <img className={styles.summaryImage} src={item.image} alt={item.name} />
+                <div>
+                  <h3 className={styles.summaryName}>{item.name}</h3>
+                  <p className={styles.summaryMeta}>
+                    {item.quantity} x {formatCOP(item.price)}
+                  </p>
+                </div>
+                <strong className={styles.summaryPrice}>
+                  {formatCOP(item.price * item.quantity)}
+                </strong>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.totalRows}>
+            <div className={styles.totalRow}>
               <span>Subtotal</span>
-              <span>${totals.subtotal.toFixed(2)}</span>
+              <strong>{formatCOP(totals.subtotal)}</strong>
             </div>
-            <div className={styles.summaryRow}>
+            <div className={styles.totalRow}>
               <span>IVA (19%)</span>
-              <span>${totals.tax.toFixed(2)}</span>
+              <strong>{formatCOP(totals.tax)}</strong>
             </div>
-            <div className={styles.summaryRow}>
-              <span>Envio</span>
-              <span>${totals.shipping.toFixed(2)}</span>
+            <div className={styles.totalRow}>
+              <span>{totals.shippingOption.label}</span>
+              <strong>{formatCOP(totals.shipping)}</strong>
             </div>
-            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+            <div className={`${styles.totalRow} ${styles.totalRowStrong}`}>
               <span>Total</span>
-              <span>${totals.total.toFixed(2)}</span>
+              <strong>{formatCOP(totals.total)}</strong>
             </div>
           </div>
         </aside>
