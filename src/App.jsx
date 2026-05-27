@@ -10,7 +10,6 @@ import Checkout from './pages/Checkout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import OrderConfirmation from './pages/OrderConfirmation';
-import PracticaProductos from './pages/PracticaProductos';
 import ProductList from './pages/ProductList';
 import OrderDetail from './pages/UserOrderDetail';
 import Register from './pages/Register';
@@ -151,7 +150,6 @@ function App() {
             element={<CategoryProducts cartItems={cartItems} onAddToCart={handleAddToCart} />}
           />
            <Route path="/products" element={<ProductList />} />
-           <Route path="/practica" element={<PracticaProductos />} />
           <Route
             path="/cart"
             element={

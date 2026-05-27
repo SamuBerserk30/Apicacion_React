@@ -19,7 +19,7 @@ function OrderDetail() {
     return (
       <section className={styles.container}>
         <div className={styles.emptyState}>
-          <p className={styles.eyebrow}>Semana 11</p>
+          <p className={styles.eyebrow}>Usuario</p>
           <h1 className={styles.title}>Orden no encontrada</h1>
           <p className={styles.subtitle}>
             El identificador solicitado no pertenece al usuario autenticado o ya no está disponible
@@ -51,7 +51,7 @@ function OrderDetail() {
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Semana 11</p>
+          <p className={styles.eyebrow}>Usuario</p>
           <h1 className={styles.title}>Detalle de orden</h1>
           <p className={styles.subtitle}>
             Consulta el pedido completo, con los datos del cliente, envio, pago y totales.

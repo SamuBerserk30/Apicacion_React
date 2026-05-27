@@ -19,7 +19,7 @@ function UserOrders() {
     return (
       <section className={styles.container}>
         <div className={styles.emptyState}>
-          <p className={styles.eyebrow}>Semana 11</p>
+          <p className={styles.eyebrow}>Usuario</p>
           <h1 className={styles.title}>Mis ordenes</h1>
           <p className={styles.subtitle}>
             Todavía no hay compras asociadas a tu sesión. Completa el checkout autenticado para
@@ -46,7 +46,7 @@ function UserOrders() {
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Semana 11</p>
+          <p className={styles.eyebrow}>Usuario</p>
           <h1 className={styles.title}>Historial de ordenes</h1>
           <p className={styles.subtitle}>
             Recupera únicamente las compras del usuario autenticado y navega al detalle de cada

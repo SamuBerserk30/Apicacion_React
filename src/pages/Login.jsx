@@ -7,6 +7,7 @@ import styles from '../styles/AuthPage.module.css';
 function Login() {
   const [values, setValues] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,16 +18,20 @@ function Login() {
     setError('');
   };
 
-  const handleSubmit = (event) => {
+  // ← async para poder usar await con login()
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
 
-    const result = login({
+    const result = await login({
       email: values.email.trim(),
       password: values.password,
     });
 
+    setIsLoading(false);
+
     if (!result.ok) {
-      setError(result.error);
+      setError(result.error ?? 'No fue posible iniciar sesión.');
       return;
     }
 
@@ -53,6 +58,7 @@ function Login() {
               onChange={handleChange}
               placeholder="correo@dominio.com"
               type="email"
+              disabled={isLoading}
             />
           </label>
 
@@ -65,13 +71,14 @@ function Login() {
               onChange={handleChange}
               placeholder="Mínimo 6 caracteres"
               type="password"
+              disabled={isLoading}
             />
           </label>
 
           {error ? <p className={styles.error}>{error}</p> : null}
 
-          <button type="submit" className={styles.primaryButton}>
-            Ingresar
+          <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+            {isLoading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
 

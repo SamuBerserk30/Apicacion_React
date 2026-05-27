@@ -8,6 +8,9 @@ import {
   SHIPPING_OPTIONS,
 } from '../utils/calculateOrderTotals';
 
+const formatCOP = (value) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
+
 const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
 
 function Checkout({ cartItems, user, onCompleteCheckout }) {

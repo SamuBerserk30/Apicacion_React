@@ -3,29 +3,54 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import ProductForm from '../components/ProductForm';
+import { products as seedProducts } from '../data/Product.js';
+import productService from '../services/productService';
 import styles from './ProductList.module.css';
-import { loadProducts, PRODUCTS_STORAGE_KEY } from '../utils/productsStorage';
-
-const STORAGE_KEY = PRODUCTS_STORAGE_KEY;
 
 function ProductList() {
-  const [productsState, setProductsState] = useState(loadProducts);
+
+  const [productsState, setProductsState] = useState(seedProducts);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+    let isMounted = true;
 
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(productsState));
-    } catch (error) {
-      void error;
-    }
-  }, [productsState]);
+    productService
+      .getProductsAsync()
+      .then((backendProducts) => {
+        if (!isMounted) return;
+        if (!Array.isArray(backendProducts) || backendProducts.length === 0) return;
+
+        // Une locales + backend sin duplicar por id
+        setProductsState((currentProducts) => {
+          const localIds = new Set(currentProducts.map((p) => p.id));
+          const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
+          return [...currentProducts, ...onlyFromBackend];
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const refreshProducts = () => {
+    productService
+      .getProductsAsync()
+      .then((backendProducts) => {
+        if (!Array.isArray(backendProducts) || backendProducts.length === 0) return;
+        setProductsState((currentProducts) => {
+          const localIds = new Set(seedProducts.map((p) => p.id));
+          const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
+          return [...seedProducts, ...onlyFromBackend];
+        });
+      })
+      .catch(() => {});
+  };
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -37,23 +62,16 @@ function ProductList() {
     setIsFormOpen(false);
   };
 
-  const handleAddProduct = (product) => {
-    setProductsState((prev) => {
-      const maxId = prev.reduce((acc, item) => Math.max(acc, item.id), 0);
-      const nextId = maxId + 1;
-
-      return [...prev, { ...product, id: nextId }];
-    });
-
+  const handleAddProduct = async (product) => {
+    await productService.createProductAsync(product, productsState);
     handleCloseForm();
+    refreshProducts();
   };
 
-  const handleDeleteProduct = (id) => {
-    setProductsState((prev) => prev.filter((product) => product.id !== id));
-
-    if (editingProduct?.id === id) {
-      handleCloseForm();
-    }
+  const handleDeleteProduct = async (id) => {
+    await productService.deleteProductAsync(id, productsState);
+    if (editingProduct?.id === id) handleCloseForm();
+    refreshProducts();
   };
 
   const handleEditStart = (product) => {
@@ -61,11 +79,10 @@ function ProductList() {
     setIsFormOpen(true);
   };
 
-  const handleEditSubmit = (updatedProduct) => {
-    setProductsState((prev) =>
-      prev.map((product) => (product.id === updatedProduct.id ? updatedProduct : product))
-    );
+  const handleEditSubmit = async (updatedProduct) => {
+    await productService.updateProductAsync(updatedProduct, productsState);
     handleCloseForm();
+    refreshProducts();
   };
 
   const handleOpenDetails = (product) => {
@@ -107,14 +124,15 @@ function ProductList() {
               <ProductCard
                 key={product.id}
                 name={product.name}
-                category={product.category}
+                category={product.category ?? product.categoryName}
                 price={product.price}
                 rating={product.rating}
-                stock={product.stock}
+                stock={product.stock ?? product.stockQty}
                 image={product.image}
                 description={product.description}
                 onDelete={() => handleDeleteProduct(product.id)}
                 onEdit={() => handleEditStart(product)}
+                onClick={() => handleOpenDetails(product)}
               />
             ))}
           </div>
