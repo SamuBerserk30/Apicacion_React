@@ -71,7 +71,7 @@ function Register() {
   return (
     <section className={styles.container}>
       <div className={styles.card}>
-        <p className={styles.eyebrow}>Semana 11</p>
+        <p className={styles.eyebrow}>Usuario</p>
         <h1 className={styles.title}>Crear cuenta</h1>
         <p className={styles.subtitle}>
           Registra un usuario para mantener sesión y asociar compras a tu perfil.

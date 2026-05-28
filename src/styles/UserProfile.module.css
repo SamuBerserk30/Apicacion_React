@@ -1,114 +1,200 @@
 .container {
   width: 100%;
-  max-width: 560px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 18px;
-  padding: 1.75rem;
-  box-shadow: 0 18px 50px rgba(22, 30, 84, 0.16);
+  padding: 2rem 1.5rem;
 }
 
 .header {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 1.75rem;
-}
-
-.avatar {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: white;
-  font-size: 1.6rem;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.name {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: var(--gray-900);
-}
-
-.email {
-  margin: 0.3rem 0 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--gray-500);
-}
-
-.stats {
-  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.stat {
-  flex: 1;
-  padding: 1rem 1.25rem;
-  background: var(--gray-100);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.statNumber {
-  display: block;
-  font-size: 2rem;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--primary-dark);
-}
-
-.statLabel {
-  display: block;
-  margin-top: 0.35rem;
+.eyebrow {
+  margin: 0 0 0.25rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--gray-500);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.subtitle,
-.empty {
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 8px 32px rgba(22, 30, 84, 0.18);
+}
+
+.sectionTitle {
   margin: 0 0 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.75rem;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.label {
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.infoItem strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.statsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.statCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8f9ff;
+  border-radius: 10px;
+  border-left: 3px solid #6c63ff;
+}
+
+.statCard .label {
+  color: #6b7280;
+}
+
+.statCard strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.latestOrder {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.latestOrderText {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.emptyState {
+  padding: 1rem 0;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  font-style: italic;
 }
 
 .primaryButton {
-  width: 100%;
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 1.25rem;
   border: none;
   border-radius: 10px;
-  background: var(--primary);
+  background: #6c63ff;
   color: white;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .primaryButton:hover {
-  background: var(--primary-dark);
+  background: #5a52d5;
 }
 
-@media (max-width: 480px) {
-  .card {
-    padding: 1.25rem;
+.secondaryButton {
+  padding: 0.7rem 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  background: transparent;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: white;
+}
+
+@media (max-width: 680px) {
+  .layout {
+    grid-template-columns: 1fr;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    text-align: center;
   }
 }

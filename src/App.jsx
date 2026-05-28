@@ -110,6 +110,9 @@ function App() {
     const totals = calculateOrderTotals(cartItems, shippingMethodId);
     const order = {
       id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      orderNumber: `ORD-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 1000000).toString().padStart(6,'0')}`,
+      userId: currentUser?.id ?? '',        
+      userEmail: currentUser?.email ?? '',
       createdAt: new Date().toISOString(),
       items: cartItems.map((item) => ({ ...item })),
       customer,

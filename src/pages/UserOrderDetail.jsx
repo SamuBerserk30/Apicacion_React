@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import useAuth from '../hooks/useAuth';
 import styles from '../styles/UserOrderDetail.module.css';
+import { loadOrdersByUserId } from '../utils/ordersStorage';
+
+const formatCOP = (value) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
 
 function OrderDetail() {
   const navigate = useNavigate();
@@ -87,11 +91,11 @@ function OrderDetail() {
         </div>
         <div className={styles.summaryCard}>
           <span className={styles.label}>Envio</span>
-          <strong>{order.shippingMethod.label}</strong>
+          <strong>{order.shippingMethod?.label ?? 'Estándar'}</strong>
         </div>
         <div className={styles.summaryCard}>
           <span className={styles.label}>Pago</span>
-          <strong>{order.paymentMethod.label}</strong>
+          <strong>{order.paymentMethod?.label ?? 'Tarjeta'}</strong>
         </div>
       </div>
 

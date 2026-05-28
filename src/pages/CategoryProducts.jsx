@@ -3,48 +3,54 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
+import { products as seedProducts } from '../data/Product.js';
+import productService from '../services/productService';
 import styles from '../styles/CategoryProducts.module.css';
 import productListStyles from './ProductList.module.css';
-import { loadProducts } from '../utils/productsStorage';
-import productService from '../services/productService';
 
 function CategoryProducts({ cartItems, onAddToCart }) {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [productsState, setProductsState] = useState(loadProducts);
-  useEffect(() => {
-  productService.getProductsAsync().then((products) => {
-    if (Array.isArray(products) && products.length > 0) {
-      setProductsState(products);
-    }
-  }).catch(() => {});
-}, []);
+  const [productsState, setProductsState] = useState(seedProducts);
   const navigate = useNavigate();
   const { categoryName } = useParams();
 
+  useEffect(() => {
+    let isMounted = true;
+    productService
+      .getProductsAsync()
+      .then((backendProducts) => {
+        if (!isMounted) return;
+        if (!Array.isArray(backendProducts) || backendProducts.length === 0) return;
+        setProductsState((current) => {
+          const localIds = new Set(current.map((p) => p.id));
+          const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
+          return [...current, ...onlyFromBackend];
+        });
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
+
   const category = useMemo(
     () => (categoryName ? decodeURIComponent(categoryName) : null),
-    [categoryName] 
-  )
+    [categoryName]
+  );
 
-    const cartQuantityByProductId = useMemo(
-    () => new Map(cartItems.map((item) => [item.id, item.quantity])),
+  const cartQuantityByProductId = useMemo(
+    () => new Map((cartItems ?? []).map((item) => [item.id, item.quantity])),
     [cartItems]
   );
 
   const filteredProducts = useMemo(() => {
     if (!category) return [];
-
     const q = query.trim().toLowerCase();
-
     return productsState.filter((product) => {
-      if (product.category !== category) return false;
+      const productCategory = product.category ?? product.categoryName ?? '';
+      if (productCategory !== category) return false;
       if (!q) return true;
-
-      return String(product.name ?? '')
-        .toLowerCase()
-        .includes(q);
+      return String(product.name ?? '').toLowerCase().includes(q);
     });
   }, [category, productsState, query]);
 
@@ -61,10 +67,9 @@ function CategoryProducts({ cartItems, onAddToCart }) {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <button type="button" className={styles.btnBack} onClick={() => navigate(-1)}> 
+        <button type="button" className={styles.btnBack} onClick={() => navigate(-1)}>
           Volver
         </button>
-
         <div className={styles.headerInfo}>
           <h1 className={styles.title}>{category ?? 'Categoría'}</h1>
           <p className={styles.subtitle}>Filtra por nombre para encontrar un producto</p>
@@ -91,14 +96,14 @@ function CategoryProducts({ cartItems, onAddToCart }) {
               key={product.id}
               id={product.id}
               name={product.name}
-              category={product.category}
+              category={product.category ?? product.categoryName}
               rating={product.rating}
               price={product.price}
-              stock={product.stock}
+              stock={product.stock ?? product.stockQty}
               image={product.image}
               description={product.description}
               onAddToCart={onAddToCart}
-              disableAddToCart={(cartQuantityByProductId.get(product.id) ?? 0) >= product.stock}
+              disableAddToCart={(cartQuantityByProductId.get(product.id) ?? 0) >= (product.stock ?? product.stockQty ?? 0)}
               onDetails={() => handleOpenDetails(product)}
             />
           ))}
