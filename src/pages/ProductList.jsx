@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
@@ -8,59 +8,107 @@ import productService from '../services/productService';
 import styles from './ProductList.module.css';
 
 function ProductList() {
-
   const [productsState, setProductsState] = useState(seedProducts);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const seededRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    productService
-      .getProductsAsync()
-      .then((backendProducts) => {
+    const loadAndSeed = async () => {
+      try {
+        // 1. Cargar productos del backend
+        const backendProducts = await productService.getProductsAsync();
+
         if (!isMounted) return;
-        if (!Array.isArray(backendProducts) || backendProducts.length === 0) return;
 
-        // Une locales + backend sin duplicar por id
-        setProductsState((currentProducts) => {
-          const localIds = new Set(currentProducts.map((p) => p.id));
-          const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
-          return [...currentProducts, ...onlyFromBackend];
-        });
-      })
-      .catch(() => {});
-
-    return () => {
-      isMounted = false;
+        if (Array.isArray(backendProducts) && backendProducts.length > 0) {
+          // Si hay productos en el backend, combinarlos con los locales sin duplicar
+          setProductsState((current) => {
+            const localIds = new Set(current.map((p) => p.id));
+            const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
+            return [...current, ...onlyFromBackend];
+          });
+        } else if (!seededRef.current) {
+          // Si NO hay productos en el backend, insertar los locales
+          seededRef.current = true;
+          await seedLocalProducts();
+          const afterSeed = await productService.getProductsAsync();
+          if (isMounted && Array.isArray(afterSeed) && afterSeed.length > 0) {
+            setProductsState((current) => {
+              const localIds = new Set(seedProducts.map((p) => p.id));
+              const fromBackend = afterSeed.filter((p) => !localIds.has(p.id));
+              return [...seedProducts, ...fromBackend];
+            });
+          }
+        }
+      } catch {
+        // Backend no disponible - quedan los productos locales
+      }
     };
+
+    loadAndSeed();
+    return () => { isMounted = false; };
   }, []);
 
-  const refreshProducts = () => {
-    productService
-      .getProductsAsync()
-      .then((backendProducts) => {
-        if (!Array.isArray(backendProducts) || backendProducts.length === 0) return;
-        setProductsState((currentProducts) => {
-          const localIds = new Set(seedProducts.map((p) => p.id));
-          const onlyFromBackend = backendProducts.filter((p) => !localIds.has(p.id));
-          return [...seedProducts, ...onlyFromBackend];
-        });
-      })
-      .catch(() => {});
+  // Inserta los productos locales en el backend
+  const seedLocalProducts = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    // Obtener categorías del backend
+    const catRes = await fetch('/api/v1/categories', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!catRes.ok) return;
+    const categories = await catRes.json().catch(() => []);
+    const catList = Array.isArray(categories) ? categories : categories?.items ?? [];
+
+    for (const product of seedProducts) {
+      const foundCat = catList.find(
+        (c) => String(c.name ?? '').toLowerCase() === String(product.category ?? '').toLowerCase()
+      );
+      if (!foundCat) continue;
+
+      const sku = product.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').slice(0, 20);
+
+      await fetch('/api/v1/admin/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          categoryId: foundCat.id,
+          sku,
+          name: product.name,
+          description: product.description ?? '',
+          image: product.image ?? '',
+          price: product.price,
+          stockQty: product.stock ?? 5,
+          isActive: true,
+        }),
+      }).catch(() => {});
+    }
   };
 
-  const handleOpenCreate = () => {
-    setEditingProduct(null);
-    setIsFormOpen(true);
+  const refreshProducts = async () => {
+    try {
+      const backendProducts = await productService.getProductsAsync();
+      if (!Array.isArray(backendProducts)) return;
+      setProductsState(() => {
+        const localIds = new Set(seedProducts.map((p) => p.id));
+        const fromBackend = backendProducts.filter((p) => !localIds.has(p.id));
+        return [...seedProducts, ...fromBackend];
+      });
+    } catch { }
   };
 
-  const handleCloseForm = () => {
-    setEditingProduct(null);
-    setIsFormOpen(false);
-  };
+  const handleOpenCreate = () => { setEditingProduct(null); setIsFormOpen(true); };
+  const handleCloseForm = () => { setEditingProduct(null); setIsFormOpen(false); };
 
   const handleAddProduct = async (product) => {
     await productService.createProductAsync(product, productsState);
@@ -74,10 +122,7 @@ function ProductList() {
     refreshProducts();
   };
 
-  const handleEditStart = (product) => {
-    setEditingProduct(product);
-    setIsFormOpen(true);
-  };
+  const handleEditStart = (product) => { setEditingProduct(product); setIsFormOpen(true); };
 
   const handleEditSubmit = async (updatedProduct) => {
     await productService.updateProductAsync(updatedProduct, productsState);
@@ -85,15 +130,8 @@ function ProductList() {
     refreshProducts();
   };
 
-  const handleOpenDetails = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseDetails = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
-  };
+  const handleOpenDetails = (product) => { setSelectedProduct(product); setIsModalOpen(true); };
+  const handleCloseDetails = () => { setIsModalOpen(false); setSelectedProduct(null); };
 
   return (
     <div className={styles.container}>

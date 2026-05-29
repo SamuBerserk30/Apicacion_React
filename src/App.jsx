@@ -15,6 +15,8 @@ import OrderDetail from './pages/UserOrderDetail';
 import Register from './pages/Register';
 import UserOrders from './pages/UserOrders';
 import UserProfile from './pages/UserProfile';
+import addressService from './services/addressService';
+import { loadSessionToken } from './utils/authStorage';
 import {
   calculateOrderTotals,
   getPaymentMethodById,
@@ -35,9 +37,7 @@ function App() {
   }, [cartItems]);
 
   const handleAddToCart = (product) => {
-    if (!product || !Number.isFinite(Number(product.id))) {
-      return;
-    }
+    if (!product || !Number.isFinite(Number(product.id))) return;
 
     setCartItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.id === product.id);
@@ -62,15 +62,8 @@ function App() {
       }
 
       return currentItems.map((item) => {
-        if (item.id !== product.id) {
-          return item;
-        }
-
-        return {
-          ...item,
-          stock,
-          quantity: Math.min(item.quantity + 1, stock),
-        };
+        if (item.id !== product.id) return item;
+        return { ...item, stock, quantity: Math.min(item.quantity + 1, stock) };
       });
     });
   };
@@ -78,17 +71,10 @@ function App() {
   const handleUpdateCartItemQuantity = (productId, nextQuantity) => {
     setCartItems((currentItems) =>
       currentItems.flatMap((item) => {
-        if (item.id !== productId) {
-          return [item];
-        }
-
+        if (item.id !== productId) return [item];
         const stock =
           Number.isFinite(Number(item.stock)) && Number(item.stock) > 0 ? Number(item.stock) : 1;
-        const normalizedQuantity = Math.max(
-          1,
-          Math.min(stock, Math.floor(Number(nextQuantity) || 1))
-        );
-
+        const normalizedQuantity = Math.max(1, Math.min(stock, Math.floor(Number(nextQuantity) || 1)));
         return normalizedQuantity > 0 ? [{ ...item, quantity: normalizedQuantity }] : [];
       })
     );
@@ -98,20 +84,17 @@ function App() {
     setCartItems((currentItems) => currentItems.filter((item) => item.id !== productId));
   };
 
-  const handleClearCart = () => {
-    setCartItems([]);
-  };
+  const handleClearCart = () => setCartItems([]);
 
-  const handleCompleteCheckout = ({ customer, shippingMethodId, paymentMethodId }) => {
-    if (cartItems.length === 0) {
-      return null;
-    }
+  // Guarda siempre en localStorage y también intenta guardar en el backend
+  const handleCompleteCheckout = async ({ customer, shippingMethodId, paymentMethodId }) => {
+    if (cartItems.length === 0) return null;
 
     const totals = calculateOrderTotals(cartItems, shippingMethodId);
-    const order = {
+    const localOrder = {
       id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      orderNumber: `ORD-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 1000000).toString().padStart(6,'0')}`,
-      userId: currentUser?.id ?? '',        
+      orderNumber: `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`,
+      userId: currentUser?.id ?? '',
       userEmail: currentUser?.email ?? '',
       createdAt: new Date().toISOString(),
       items: cartItems.map((item) => ({ ...item })),
@@ -119,17 +102,60 @@ function App() {
       shippingMethod: getShippingOptionById(shippingMethodId),
       paymentMethod: getPaymentMethodById(paymentMethodId),
       totals,
+      status: 'PENDING',
     };
 
-    saveOrder(order);
-    setLatestOrder(order);
+    // Siempre guarda en localStorage primero
+    saveOrder(localOrder);
+    setLatestOrder(localOrder);
     setCartItems([]);
-    return order;
+
+    // Si hay sesión, intenta guardar en el backend también
+    const token = loadSessionToken();
+    if (token && currentUser) {
+      try {
+        // 1. Crear dirección de envío en el backend
+        const address = await addressService.createAddress({
+          line1: customer.address,
+          city: customer.city,
+          state: 'Antioquia',
+          country: 'Colombia',
+          postalCode: customer.postalCode,
+          type: 'SHIPPING',
+          isDefault: false,
+        });
+
+        // 2. Obtener el carrito del backend
+        const cartRes = await fetch('/api/v1/cart/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const cartData = await cartRes.json().catch(() => null);
+        const cartId = cartData?.id;
+
+        if (cartId && address?.id) {
+          // 3. Hacer checkout en el backend
+          await fetch('/api/v1/orders/checkout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              cartId: Number(cartId),
+              shippingAddressId: Number(address.id),
+              billingAddressId: Number(address.id),
+            }),
+          });
+        }
+      } catch {
+        // Si el backend falla, la orden ya está guardada en localStorage
+      }
+    }
+
+    return localOrder;
   };
 
-  const handleBackHomeAfterOrder = () => {
-    setLatestOrder(null);
-  };
+  const handleBackHomeAfterOrder = () => setLatestOrder(null);
 
   const cartItemCount = useMemo(
     () => cartItems.reduce((total, item) => total + item.quantity, 0),
@@ -138,10 +164,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header
-        user={currentUser}
-        cartItemCount={cartItemCount}
-      />
+      <Header user={currentUser} cartItemCount={cartItemCount} />
 
       <main className="main">
         <Routes>
@@ -152,7 +175,7 @@ function App() {
             path="/category/:categoryName"
             element={<CategoryProducts cartItems={cartItems} onAddToCart={handleAddToCart} />}
           />
-           <Route path="/products" element={<ProductList />} />
+          <Route path="/products" element={<ProductList />} />
           <Route
             path="/cart"
             element={
@@ -170,20 +193,18 @@ function App() {
               <Checkout
                 cartItems={cartItems}
                 user={currentUser}
-                onBack={() => Navigate('/cart')} 
+                onBack={() => Navigate('/cart')}
                 onCompleteCheckout={handleCompleteCheckout}
               />
             }
           />
           <Route
             path="/order-confirmation"
-            element={
-              <OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />
-            }
-            />
-            <Route path="/user/profile" element={<UserProfile />} />
-            <Route path="/user/orders" element={<UserOrders />} />
-            <Route path="/user/orders/:orderId" element={<OrderDetail />} />
+            element={<OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />}
+          />
+          <Route path="/user/profile" element={<UserProfile />} />
+          <Route path="/user/orders" element={<UserOrders />} />
+          <Route path="/user/orders/:orderId" element={<OrderDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

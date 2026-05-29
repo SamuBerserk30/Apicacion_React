@@ -1,29 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import styles from "../styles/ProductForm.module.css";
+import styles from '../styles/ProductForm.module.css';
 
 const emptyValues = {
-  name: "",
-  category: "",
-  price: "",
-  stock: "",
-  image: "",
-  description: "",
+  name: '',
+  category: '',
+  price: '',
+  stock: '',
+  image: '',
+  description: '',
+  rating: '3',
 };
 
 function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
   const [values, setValues] = useState(emptyValues);
+  const [categories, setCategories] = useState([]);
 
-  // useEffect: si cambia initialValues (prop), precargamos el formulario
+  // Cargar categorías del backend
+  useEffect(() => {
+    fetch('/api/v1/categories')
+      .then((r) => r.json())
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.items ?? [];
+        setCategories(list);
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (initialValues) {
       setValues({
-        name: initialValues.name ?? "",
-        category: initialValues.category ?? "",
-        price: initialValues.price ?? "",
-        stock: initialValues.stock ?? "",
-        image: initialValues.image ?? "",
-        description: initialValues.description ?? "",
+        name: initialValues.name ?? '',
+        category: initialValues.category ?? initialValues.categoryName ?? '',
+        price: initialValues.price ?? '',
+        stock: initialValues.stock ?? initialValues.stockQty ?? '',
+        image: initialValues.image ?? '',
+        description: initialValues.description ?? '',
+        rating: initialValues.rating ?? '3',
       });
     } else {
       setValues(emptyValues);
@@ -32,8 +45,6 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
-    // prev = estado anterior del formulario (NO es prop)
     setValues((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -44,26 +55,38 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
     const category = values.category.trim();
     const image = values.image.trim();
     const description = values.description.trim();
-
     const price = Number(values.price);
     const stock = Number(values.stock);
-
-    const parsedRating = Number(initialValues?.rating ?? 3);
-    const rating = Number.isFinite(parsedRating) ? Math.min(5, Math.max(1, parsedRating)) : 3;
+    const rating = Number(values.rating ?? 3);
 
     if (!name) return;
+    if (!category) { alert('Selecciona o escribe una categoría'); return; }
     if (!Number.isFinite(price) || price <= 0) return;
     if (!Number.isFinite(stock) || stock < 0) return;
+
+    // Buscar categoryId de la lista cargada
+    const foundCategory = categories.find(
+      (c) => String(c.name ?? '').toLowerCase() === category.toLowerCase()
+    );
+    const categoryId = foundCategory?.id ?? null;
+
+    // Generar SKU automático a partir del nombre
+    const sku = (initialValues?.sku ?? name.toUpperCase().replace(/[^A-Z0-9]/g, '-').slice(0, 20));
 
     onSubmit({
       ...initialValues,
       name,
       category,
+      categoryName: category,
+      categoryId,
+      sku,
       price,
       stock,
+      stockQty: stock,
       image,
       description,
-      rating,
+      rating: Number.isFinite(rating) ? Math.min(5, Math.max(1, rating)) : 3,
+      isActive: true,
     });
 
     if (!isEditing) {
@@ -75,11 +98,9 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
     <section className={styles.container}>
       <header className={styles.header}>
         <h2 className={styles.title}>
-          {isEditing ? "Editar producto" : "Agregar producto"}
+          {isEditing ? 'Editar producto' : 'Agregar producto'}
         </h2>
-        <p className={styles.subtitle}>
-          Completa el formulario y guarda los cambios.
-        </p>
+        <p className={styles.subtitle}>Completa el formulario y guarda los cambios.</p>
       </header>
 
       <form className={styles.form} onSubmit={handleSubmit}>
@@ -96,13 +117,29 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
 
         <label className={styles.field}>
           <span className={styles.label}>Categoría</span>
-          <input
-            className={styles.input}
-            name="category"
-            value={values.category}
-            onChange={handleChange}
-            placeholder="Ej: Accesorios"
-          />
+          {categories.length > 0 ? (
+            <select
+              className={styles.input}
+              name="category"
+              value={values.category}
+              onChange={handleChange}
+            >
+              <option value="">Selecciona una categoría</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              className={styles.input}
+              name="category"
+              value={values.category}
+              onChange={handleChange}
+              placeholder="Ej: Laptops"
+            />
+          )}
         </label>
 
         <div className={styles.row}>
@@ -115,7 +152,7 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
               min="1"
               value={values.price}
               onChange={handleChange}
-              placeholder="Ej: 199990"
+              placeholder="Ej: 500"
             />
           </label>
 
@@ -140,7 +177,7 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
             name="image"
             value={values.image}
             onChange={handleChange}
-            placeholder="https://..."
+            placeholder="https://... o /assets/imagen.jpg"
           />
         </label>
 
@@ -158,17 +195,12 @@ function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
 
         <div className={styles.actions}>
           {onCancel ? (
-            <button
-              className={styles.btnSecondary}
-              type="button"
-              onClick={onCancel}
-            >
+            <button className={styles.btnSecondary} type="button" onClick={onCancel}>
               Cancelar
             </button>
           ) : null}
-
           <button className={styles.btnPrimary} type="submit">
-            {isEditing ? "Guardar cambios" : "Agregar producto"}
+            {isEditing ? 'Guardar cambios' : 'Agregar producto'}
           </button>
         </div>
       </form>
