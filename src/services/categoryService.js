@@ -1,5 +1,6 @@
 import { appConfig } from '../config';
 import { loadProducts } from '../utils/productsStorage';
+
 import { requestJson } from './http';
 
 const normalizeId = (value) => {
@@ -17,10 +18,22 @@ const slugify = (value) =>
     .replace(/(^-|-$)/g, '');
 
 const extractCollection = (payload) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.items)) return payload.items;
-  if (Array.isArray(payload?.content)) return payload.content;
-  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload?.content)) {
+    return payload.content;
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
   return [];
 };
 
@@ -32,8 +45,8 @@ const normalizeCategory = (category, parentCategory = null) => {
       ? (parentCategory?.id ?? null)
       : normalizeId(category.parentId);
   const parentName = String(category?.parentName ?? parentCategory?.name ?? '').trim() || null;
-  const subcategories = extractCollection(category?.subcategories).map((sub) =>
-    normalizeCategory(sub, { id, name })
+  const subcategories = extractCollection(category?.subcategories).map((subcategory) =>
+    normalizeCategory(subcategory, { id, name })
   );
 
   return {
@@ -54,29 +67,36 @@ const normalizeCategory = (category, parentCategory = null) => {
 };
 
 const flattenCategories = (categories) =>
-  categories.flatMap((cat) => [
-    cat,
-    ...flattenCategories(Array.isArray(cat.subcategories) ? cat.subcategories : []),
+  categories.flatMap((category) => [
+    category,
+    ...flattenCategories(Array.isArray(category.subcategories) ? category.subcategories : []),
   ]);
 
 const buildLocalCategoriesTree = () => {
   const categoriesByName = new Map();
+
   for (const product of loadProducts()) {
     const categoryName = String(product?.categoryName ?? product?.category ?? '').trim();
-    if (!categoryName) continue;
-    const existing = categoriesByName.get(categoryName);
+
+    if (!categoryName) {
+      continue;
+    }
+
+    const existingCategory = categoriesByName.get(categoryName);
+
     categoriesByName.set(categoryName, {
-      id: normalizeId(product?.categoryId) || existing?.id || categoriesByName.size + 1,
+      id: normalizeId(product?.categoryId) || existingCategory?.id || categoriesByName.size + 1,
       name: categoryName,
       slug: slugify(categoryName),
       isRoot: true,
-      productsCount: (existing?.productsCount ?? 0) + 1,
+      productsCount: (existingCategory?.productsCount ?? 0) + 1,
       subcategories: [],
     });
   }
+
   return Array.from(categoriesByName.values())
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((cat) => normalizeCategory(cat));
+    .sort((leftCategory, rightCategory) => leftCategory.name.localeCompare(rightCategory.name))
+    .map((category) => normalizeCategory(category));
 };
 
 function getCategoriesTree() {
@@ -88,27 +108,75 @@ function getCategories() {
 }
 
 function getCategoryById(categoryId) {
-  return getCategories().find((cat) => cat.id === normalizeId(categoryId)) ?? null;
+  const normalizedCategoryId = normalizeId(categoryId);
+  return getCategories().find((category) => category.id === normalizedCategoryId) ?? null;
+}
+
+function getSubcategoriesByCategoryId(categoryId) {
+  return getCategories().filter((category) => category.parentId === normalizeId(categoryId));
 }
 
 async function getCategoriesAsync() {
-  if (!appConfig.useRemoteApi) return getCategories();
-  const response = await requestJson('/categories', { method: 'GET' });
-  return extractCollection(response).map((cat) => normalizeCategory(cat));
+  if (!appConfig.useRemoteApi) {
+    return getCategories();
+  }
+
+  const response = await requestJson('/categories', {
+    method: 'GET',
+  });
+
+  return extractCollection(response).map((category) => normalizeCategory(category));
+}
+
+async function getCategoriesTreeAsync() {
+  if (!appConfig.useRemoteApi) {
+    return getCategoriesTree();
+  }
+
+  const response = await requestJson('/categories/tree', {
+    method: 'GET',
+  });
+
+  return extractCollection(response).map((category) => normalizeCategory(category));
 }
 
 async function getCategoryByIdAsync(categoryId) {
-  if (!appConfig.useRemoteApi) return getCategoryById(normalizeId(categoryId));
-  const response = await requestJson(`/categories/${normalizeId(categoryId)}`, { method: 'GET' });
+  const normalizedCategoryId = normalizeId(categoryId);
+
+  if (!appConfig.useRemoteApi) {
+    return getCategoryById(normalizedCategoryId);
+  }
+
+  const response = await requestJson(`/categories/${normalizedCategoryId}`, {
+    method: 'GET',
+  });
+
   return normalizeCategory(response);
+}
+
+async function getSubcategoriesByCategoryIdAsync(categoryId) {
+  const normalizedCategoryId = normalizeId(categoryId);
+
+  if (!appConfig.useRemoteApi) {
+    return getSubcategoriesByCategoryId(normalizedCategoryId);
+  }
+
+  const response = await requestJson(`/categories/${normalizedCategoryId}/subcategories`, {
+    method: 'GET',
+  });
+
+  return extractCollection(response).map((category) => normalizeCategory(category));
 }
 
 const categoryService = {
   getCategories,
   getCategoriesAsync,
   getCategoriesTree,
+  getCategoriesTreeAsync,
   getCategoryById,
   getCategoryByIdAsync,
+  getSubcategoriesByCategoryId,
+  getSubcategoriesByCategoryIdAsync,
 };
 
 export { categoryService };

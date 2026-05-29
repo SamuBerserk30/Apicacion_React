@@ -31,21 +31,37 @@ const getGuestCartIdForAuth = (cart = loadCart()) => {
   ) {
     return '';
   }
+
   return normalizedCartId;
 };
 
 const ensureRemoteCartSession = async () => {
   const currentToken = loadSessionToken();
-  if (currentToken) return currentToken;
 
-  if (pendingGuestSessionPromise) return pendingGuestSessionPromise;
+  if (currentToken) {
+    return currentToken;
+  }
 
-  pendingGuestSessionPromise = requestJson('/auth/guest-session', { method: 'POST' })
+  if (pendingGuestSessionPromise) {
+    return pendingGuestSessionPromise;
+  }
+
+  pendingGuestSessionPromise = requestJson('/auth/guest-session', {
+    method: 'POST',
+  })
     .then((response) => {
       const nextToken = String(response?.sessionToken ?? response?.token ?? '').trim();
-      if (!nextToken) throw new Error('No fue posible inicializar la sesión invitada del carrito.');
+
+      if (!nextToken) {
+        throw new Error('No fue posible inicializar la sesión invitada del carrito.');
+      }
+
       saveSessionToken(nextToken);
-      if (response?.cart) normalizeCartResponse(response.cart);
+
+      if (response?.cart) {
+        normalizeCartResponse(response.cart);
+      }
+
       return nextToken;
     })
     .finally(() => {
@@ -56,7 +72,11 @@ const ensureRemoteCartSession = async () => {
 };
 
 const buildLocalCart = (items, currentCart = loadCart()) =>
-  saveCart({ ...currentCart, updatedAt: new Date().toISOString(), items });
+  saveCart({
+    ...currentCart,
+    updatedAt: new Date().toISOString(),
+    items,
+  });
 
 function getCartItems() {
   return loadCart().items;
@@ -71,7 +91,9 @@ function persistCartItems(items) {
 }
 
 function addToCart(product, currentItems = getCartItems()) {
-  if (!product || !Number.isFinite(Number(product.id))) return currentItems;
+  if (!product || !Number.isFinite(Number(product.id))) {
+    return currentItems;
+  }
 
   const normalizedId = Number(product.id);
   const stock = normalizeProductStock(product);
@@ -96,16 +118,26 @@ function addToCart(product, currentItems = getCartItems()) {
   if (!existingItem) {
     return persistCartItems([
       ...currentItems,
-      { ...nextItemBase, quantity: 1, lineTotal: Number(product.price) || 0 },
+      {
+        ...nextItemBase,
+        quantity: 1,
+        lineTotal: Number(product.price) || 0,
+      },
     ]);
   }
 
   return persistCartItems(
     currentItems.map((item) => {
-      if (item.id !== normalizedId) return item;
+      if (item.id !== normalizedId) {
+        return item;
+      }
+
       return {
         ...item,
         ...nextItemBase,
+        stock,
+        stockQty: stock,
+        productStock: stock,
         quantity: Math.min(item.quantity + 1, Math.max(stock, 1)),
         lineTotal:
           (Number(item.unitPrice ?? item.price) || 0) *
@@ -118,11 +150,24 @@ function addToCart(product, currentItems = getCartItems()) {
 function updateCartItemQuantity(productId, nextQuantity, currentItems = getCartItems()) {
   return persistCartItems(
     currentItems.flatMap((item) => {
-      if (item.id !== productId) return [item];
+      if (item.id !== productId) {
+        return [item];
+      }
+
       const stock = Number.isFinite(Number(item.stock)) && Number(item.stock) > 0 ? item.stock : 1;
-      const normalizedQuantity = Math.max(1, Math.min(stock, Math.floor(Number(nextQuantity) || 1)));
+      const normalizedQuantity = Math.max(
+        1,
+        Math.min(stock, Math.floor(Number(nextQuantity) || 1))
+      );
+
       return normalizedQuantity > 0
-        ? [{ ...item, quantity: normalizedQuantity, lineTotal: (Number(item.unitPrice ?? item.price) || 0) * normalizedQuantity }]
+        ? [
+            {
+              ...item,
+              quantity: normalizedQuantity,
+              lineTotal: (Number(item.unitPrice ?? item.price) || 0) * normalizedQuantity,
+            },
+          ]
         : [];
     })
   );
@@ -141,22 +186,34 @@ function getCartItemCount(currentItems = getCartItems()) {
 }
 
 async function getCartAsync() {
-  if (!appConfig.useRemoteApi) return getCart();
+  if (!appConfig.useRemoteApi) {
+    return getCart();
+  }
 
   const token = await ensureRemoteCartSession();
-  const response = await requestJson('/cart/me', { method: 'GET', token });
+  const response = await requestJson('/cart/me', {
+    method: 'GET',
+    token,
+  });
+
   return normalizeCartResponse(response);
 }
 
 async function addToCartAsync(product, currentItems = getCartItems()) {
-  if (!appConfig.useRemoteApi) return buildLocalCart(addToCart(product, currentItems));
+  if (!appConfig.useRemoteApi) {
+    return buildLocalCart(addToCart(product, currentItems));
+  }
 
   const token = await ensureRemoteCartSession();
   const response = await requestJson('/cart/items', {
     method: 'POST',
     token,
-    body: { productId: Number(product?.productId ?? product?.id), quantity: 1 },
+    body: {
+      productId: Number(product?.productId ?? product?.id),
+      quantity: 1,
+    },
   });
+
   return normalizeCartResponse(response);
 }
 
@@ -169,37 +226,58 @@ async function updateCartItemQuantityAsync(productId, nextQuantity, currentItems
   const response = await requestJson(`/cart/items/${productId}`, {
     method: 'PATCH',
     token,
-    body: { quantity: Math.max(1, Math.floor(Number(nextQuantity) || 1)) },
+    body: {
+      quantity: Math.max(1, Math.floor(Number(nextQuantity) || 1)),
+    },
   });
+
   return normalizeCartResponse(response);
 }
 
 async function removeCartItemAsync(productId, currentItems = getCartItems()) {
-  if (!appConfig.useRemoteApi) return buildLocalCart(removeCartItem(productId, currentItems));
+  if (!appConfig.useRemoteApi) {
+    return buildLocalCart(removeCartItem(productId, currentItems));
+  }
 
   const token = await ensureRemoteCartSession();
-  const response = await requestJson(`/cart/items/${productId}`, { method: 'DELETE', token });
+  const response = await requestJson(`/cart/items/${productId}`, {
+    method: 'DELETE',
+    token,
+  });
+
   return normalizeCartResponse(response);
 }
 
 async function clearCartAsync() {
-  if (!appConfig.useRemoteApi) return clearCart();
+  if (!appConfig.useRemoteApi) {
+    return clearCart();
+  }
 
   const token = await ensureRemoteCartSession();
-  await requestJson('/cart/items', { method: 'DELETE', token });
+  await requestJson('/cart/items', {
+    method: 'DELETE',
+    token,
+  });
+
   return saveCart({ ...loadCart(), items: [], updatedAt: new Date().toISOString() });
 }
 
 async function mergeCartAsync(guestCartId) {
   const normalizedGuestCartId = String(guestCartId ?? '').trim();
-  if (!normalizedGuestCartId || !appConfig.useRemoteApi) return getCart();
+
+  if (!normalizedGuestCartId || !appConfig.useRemoteApi) {
+    return getCart();
+  }
 
   const token = loadSessionToken();
   const response = await requestJson('/cart/merge', {
     method: 'POST',
     token,
-    body: { guestCartId: normalizedGuestCartId },
+    body: {
+      guestCartId: normalizedGuestCartId,
+    },
   });
+
   return normalizeCartResponse(response);
 }
 

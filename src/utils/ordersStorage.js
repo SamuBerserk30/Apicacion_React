@@ -65,9 +65,7 @@ const normalizeOrder = (order) => {
       city: String(order?.shippingAddress?.city ?? order?.customer?.city ?? ''),
       state: String(order?.shippingAddress?.state ?? ''),
       country: String(order?.shippingAddress?.country ?? 'Colombia'),
-      postalCode: String(
-        order?.shippingAddress?.postalCode ?? order?.customer?.postalCode ?? ''
-      ),
+      postalCode: String(order?.shippingAddress?.postalCode ?? order?.customer?.postalCode ?? ''),
       isDefault: Boolean(order?.shippingAddress?.isDefault),
     },
     billingAddress: {
@@ -91,14 +89,23 @@ const normalizeOrder = (order) => {
 };
 
 export function loadOrders() {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
+
+  if (!stored) {
+    return [];
+  }
 
   try {
     const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
     return parsed.map(normalizeOrder).filter((order) => order.id);
   } catch {
     return [];
@@ -107,27 +114,37 @@ export function loadOrders() {
 
 export function saveOrder(order) {
   const normalizedOrder = normalizeOrder(order);
-  if (typeof window === 'undefined') return normalizedOrder;
+
+  if (typeof window === 'undefined') {
+    return normalizedOrder;
+  }
 
   const currentOrders = loadOrders();
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify([normalizedOrder, ...currentOrders])
-  );
+
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify([normalizedOrder, ...currentOrders]));
+
   return normalizedOrder;
 }
 
 export function saveOrders(orders) {
   const normalizedOrders = Array.isArray(orders) ? orders.map(normalizeOrder) : [];
-  if (typeof window === 'undefined') return normalizedOrders;
+
+  if (typeof window === 'undefined') {
+    return normalizedOrders;
+  }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedOrders));
+
   return normalizedOrders;
 }
 
 export function loadOrdersByUserId(userId) {
   const normalizedUserId = String(userId ?? '').trim();
-  if (!normalizedUserId) return [];
+
+  if (!normalizedUserId) {
+    return [];
+  }
+
   return loadOrders().filter((order) => order.userId === normalizedUserId);
 }
 

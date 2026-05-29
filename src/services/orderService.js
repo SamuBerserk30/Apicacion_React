@@ -12,7 +12,6 @@ const createLocalOrderNumber = () =>
   )
     .toString()
     .padStart(6, '0')}`;
-
 const toAsyncResult = (callback) => Promise.resolve().then(callback);
 
 const normalizeOrderPayload = (order) => ({
@@ -46,11 +45,15 @@ function getOrdersAsync() {
       token: loadSessionToken(),
     }).then((response) => saveOrders(Array.isArray(response) ? response : []));
   }
+
   return toAsyncResult(() => getOrders());
 }
 
 function getOrdersByUserIdAsync(userId) {
-  if (appConfig.useRemoteApi) return getOrdersAsync();
+  if (appConfig.useRemoteApi) {
+    return getOrdersAsync();
+  }
+
   return toAsyncResult(() => getOrdersByUserId(userId));
 }
 
@@ -61,13 +64,17 @@ function getOrderByIdForUserAsync(userId, orderId) {
       token: loadSessionToken(),
     }).then((response) => saveOrder(normalizeOrderPayload(response)));
   }
+
   return toAsyncResult(() => getOrderByIdForUser(userId, orderId));
 }
 
 function createOrderAsync(order) {
-  if (!appConfig.useRemoteApi) return toAsyncResult(() => createOrder(order));
+  if (!appConfig.useRemoteApi) {
+    return toAsyncResult(() => createOrder(order));
+  }
 
   const cart = loadCart();
+
   return requestJson('/orders/checkout', {
     method: 'POST',
     token: loadSessionToken(),

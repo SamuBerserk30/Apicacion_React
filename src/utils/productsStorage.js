@@ -1,18 +1,27 @@
-import { products as seedProducts } from '../data/Product.js';
+import { products as seedProducts } from '../data/products';
 
 const STORAGE_KEY = 'products';
 const DEFAULT_RATING = 3;
 
 const seedById = new Map(seedProducts.map((product) => [product.id, product]));
+
 const categoryIds = new Map();
 
 const getCategoryId = (categoryName, fallbackId) => {
   const normalizedCategoryName = String(categoryName ?? '').trim();
-  if (Number.isFinite(Number(fallbackId)) && Number(fallbackId) > 0) return Number(fallbackId);
-  if (!normalizedCategoryName) return 0;
+
+  if (Number.isFinite(Number(fallbackId)) && Number(fallbackId) > 0) {
+    return Number(fallbackId);
+  }
+
+  if (!normalizedCategoryName) {
+    return 0;
+  }
+
   if (!categoryIds.has(normalizedCategoryName)) {
     categoryIds.set(normalizedCategoryName, categoryIds.size + 1);
   }
+
   return categoryIds.get(normalizedCategoryName);
 };
 
@@ -29,17 +38,25 @@ const normalizeStockQty = (value) => {
 
 const buildSku = (product, fallbackId) => {
   const currentSku = String(product?.sku ?? '').trim();
-  if (currentSku) return currentSku;
+
+  if (currentSku) {
+    return currentSku;
+  }
+
   const categoryName = String(product?.categoryName ?? product?.category ?? 'GEN').trim();
   const categoryPrefix = categoryName.slice(0, 3).toUpperCase() || 'GEN';
   const numericId = Number(fallbackId ?? product?.id ?? 0);
   const normalizedId = Number.isFinite(numericId) && numericId > 0 ? numericId : 0;
+
   return `${categoryPrefix}-${String(normalizedId).padStart(3, '0')}`;
 };
 
 const normalizeProduct = (product, { seedFallback = true } = {}) => {
   const seedProduct = seedFallback ? seedById.get(product?.id) : null;
-  const mergedProduct = { ...(seedProduct ?? {}), ...product };
+  const mergedProduct = {
+    ...(seedProduct ?? {}),
+    ...product,
+  };
   const categoryName =
     String(mergedProduct?.categoryName ?? mergedProduct?.category ?? 'Sin categoría').trim() ||
     'Sin categoría';
@@ -68,6 +85,7 @@ const normalizeProducts = (products, options = {}) => {
   if (!Array.isArray(products)) {
     return options.seedFallback === false ? [] : seedProducts;
   }
+
   return products.map((product) => normalizeProduct(product, options));
 };
 
@@ -91,9 +109,11 @@ export function loadProducts(options = {}) {
 
 export function saveProducts(products, options = {}) {
   const normalizedProducts = normalizeProducts(products, options);
+
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedProducts));
   }
+
   return normalizedProducts;
 }
 

@@ -7,7 +7,11 @@ const clampQuantity = (value, maxStock) => {
   const parsed = Number(value);
   const normalizedMaxStock =
     Number.isFinite(Number(maxStock)) && Number(maxStock) > 0 ? Number(maxStock) : 1;
-  if (!Number.isFinite(parsed)) return 1;
+
+  if (!Number.isFinite(parsed)) {
+    return 1;
+  }
+
   return Math.min(normalizedMaxStock, Math.max(1, Math.floor(parsed)));
 };
 
@@ -45,7 +49,14 @@ const normalizeSummary = (items) => {
   const normalizedItems = Array.isArray(items) ? items.map(normalizeCartItem) : [];
   const subtotal = normalizedItems.reduce((total, item) => total + item.lineTotal, 0);
   const itemsCount = normalizedItems.reduce((total, item) => total + item.quantity, 0);
-  return { itemsCount, subtotal, tax: 0, shipping: 0, total: subtotal };
+
+  return {
+    itemsCount,
+    subtotal,
+    tax: 0,
+    shipping: 0,
+    total: subtotal,
+  };
 };
 
 const normalizeCart = (cart) => {
@@ -71,14 +82,23 @@ export function loadCartItems() {
 }
 
 export function loadCart() {
-  if (typeof window === 'undefined') return normalizeCart([]);
+  if (typeof window === 'undefined') {
+    return normalizeCart([]);
+  }
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (!stored) return normalizeCart([]);
+
+  if (!stored) {
+    return normalizeCart([]);
+  }
 
   try {
     const parsed = JSON.parse(stored);
-    if (Array.isArray(parsed)) return normalizeCart({ items: parsed });
+
+    if (Array.isArray(parsed)) {
+      return normalizeCart({ items: parsed });
+    }
+
     return normalizeCart(parsed);
   } catch {
     return normalizeCart([]);
@@ -92,10 +112,14 @@ export function saveCartItems(items) {
 
 export function saveCart(cart) {
   const normalizedCart = normalizeCart(cart);
-  if (typeof window === 'undefined') return normalizedCart;
+
+  if (typeof window === 'undefined') {
+    return normalizedCart;
+  }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedCart));
   window.dispatchEvent(new CustomEvent(CART_UPDATED_EVENT, { detail: normalizedCart }));
+
   return normalizedCart;
 }
 
