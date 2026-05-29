@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { products as seedProducts } from '../data/Product.js';
+import { products as seedProducts } from '../data/Products.js';
 import productService from '../services/productService';
 import homeStyles from '../styles/Home.module.css';
 

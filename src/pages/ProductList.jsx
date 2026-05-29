@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import ProductForm from '../components/ProductForm';
-import { products as seedProducts } from '../data/Product.js';
+import { products as seedProducts } from '../data/Products.js';
 import productService from '../services/productService';
 import styles from './ProductList.module.css';
 
