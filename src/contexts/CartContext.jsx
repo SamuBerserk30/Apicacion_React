@@ -22,12 +22,17 @@ function CartProvider({ children }) {
     let isMounted = true;
 
     const syncCartFromStorage = () => {
-      if (!isMounted) return;
+      if (!isMounted) {
+        return;
+      }
+
       setCart(cartService.getCart());
     };
 
     const handleStorage = (event) => {
-      if (!event.key || event.key === CART_STORAGE_KEY) syncCartFromStorage();
+      if (!event.key || event.key === CART_STORAGE_KEY) {
+        syncCartFromStorage();
+      }
     };
 
     syncCartFromStorage();
@@ -47,7 +52,9 @@ function CartProvider({ children }) {
       return;
     }
 
-    if (isHydratingSession) return;
+    if (isHydratingSession) {
+      return;
+    }
 
     let isMounted = true;
 
@@ -57,12 +64,19 @@ function CartProvider({ children }) {
 
       try {
         const nextCart = await cartService.getCartAsync();
-        if (!isMounted) return;
+
+        if (!isMounted) {
+          return;
+        }
+
         setCart(nextCart);
         setCartError('');
         setCartHydrationStatus('ready');
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) {
+          return;
+        }
+
         setCartError(
           error instanceof Error && error.message
             ? error.message
@@ -70,12 +84,17 @@ function CartProvider({ children }) {
         );
         setCartHydrationStatus('error');
       } finally {
-        if (isMounted) setIsSyncingCart(false);
+        if (isMounted) {
+          setIsSyncingCart(false);
+        }
       }
     };
 
     hydrateRemoteCart();
-    return () => { isMounted = false; };
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentUser?.id, isHydratingSession]);
 
   const cartItems = cart.items ?? EMPTY_CART_ITEMS;
@@ -83,6 +102,7 @@ function CartProvider({ children }) {
   const runCartAction = async (action) => {
     setIsSyncingCart(true);
     setCartError('');
+
     try {
       const nextCart = await action();
       setCart(nextCart ?? cartService.getCart());
@@ -97,15 +117,27 @@ function CartProvider({ children }) {
     }
   };
 
-  const addToCart = (product) => runCartAction(() => cartService.addToCartAsync(product, cartItems));
-  const updateCartItemQuantity = (productId, nextQuantity) =>
-    runCartAction(() => cartService.updateCartItemQuantityAsync(productId, nextQuantity, cartItems));
-  const removeCartItem = (productId) =>
-    runCartAction(() => cartService.removeCartItemAsync(productId, cartItems));
-  const clearCart = () => runCartAction(() => cartService.clearCartAsync());
-  const refreshCart = () => runCartAction(() => cartService.getCartAsync());
+  const addToCart = (product) => {
+    return runCartAction(() => cartService.addToCartAsync(product, cartItems));
+  };
+
+  const updateCartItemQuantity = (productId, nextQuantity) => {
+    return runCartAction(() =>
+      cartService.updateCartItemQuantityAsync(productId, nextQuantity, cartItems)
+    );
+  };
+
+  const removeCartItem = (productId) => {
+    return runCartAction(() => cartService.removeCartItemAsync(productId, cartItems));
+  };
+
+  const clearCart = () => {
+    return runCartAction(() => cartService.clearCartAsync());
+  };
 
   const cartItemCount = useMemo(() => cartService.getCartItemCount(cartItems), [cartItems]);
+
+  const refreshCart = () => runCartAction(() => cartService.getCartAsync());
 
   const value = {
     addToCart,

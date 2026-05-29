@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import useAuth from '../hooks/useAuth';
-import styles from '../styles/UserOrderDetail.module.css';
+import styles from '../styles/OrderDetail.module.css';
 import { loadOrdersByUserId } from '../utils/ordersStorage';
 
 const formatCOP = (value) =>
