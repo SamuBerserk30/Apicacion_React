@@ -5,15 +5,17 @@ import ProductDetailsModal from '../components/ProductDetailsModal';
 import ProductForm from '../components/ProductForm';
 import { products as seedProducts } from '../data/Products.js';
 import productService from '../services/productService';
-import styles from './ProductList.module.css';
+import styles from '../styles/ProductList.module.css';
+import useAuth from '../hooks/useAuth';
 
 function ProductList() {
-  const [productsState, setProductsState] = useState(seedProducts);
+  const [productsState, setProductsState] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const seededRef = useRef(false);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     let isMounted = true;
@@ -152,9 +154,11 @@ function ProductList() {
       ) : (
         <>
           <div className={styles.toolbar}>
+           {isAdmin ? (
             <button className={styles.btnAdd} type="button" onClick={handleOpenCreate}>
-              Agregar producto
+                Agregar producto
             </button>
+           ) : null}
           </div>
 
           <div className={styles.grid}>
@@ -168,8 +172,8 @@ function ProductList() {
                 stock={product.stock ?? product.stockQty}
                 image={product.image}
                 description={product.description}
-                onDelete={() => handleDeleteProduct(product.id)}
-                onEdit={() => handleEditStart(product)}
+                onDelete={isAdmin ? () => handleDeleteProduct(product.id) : undefined}
+                onEdit={isAdmin ? () => handleEditStart(product) : undefined}
                 onClick={() => handleOpenDetails(product)}
               />
             ))}

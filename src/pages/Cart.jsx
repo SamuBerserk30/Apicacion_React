@@ -1,14 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 
+import OptionalImage from '../components/OptionalImage';
+import useCart from '../hooks/useCart';
 import styles from '../styles/Cart.module.css';
 import { calculateCartSubtotal } from '../utils/calculateOrderTotals';
+import { formatCOP } from '../utils/formatCOP';
 
-function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
+function Cart() {
+  const { cart, cartItems, clearCart, removeCartItem, updateCartItemQuantity } = useCart();
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
   const subtotal = calculateCartSubtotal(cartItems);
   const navigate = useNavigate();
-  const formatCOP = (value) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value);
 
   if (cartItems.length === 0) {
     return (
@@ -60,16 +62,19 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
 
               return (
                 <article key={item.id} className={styles.item}>
-                  <img className={styles.image} src={item.image} alt={item.name} />
+                  <OptionalImage className={styles.image} src={item.image} alt={item.name} />
 
                   <div className={styles.itemInfo}>
-                    <span className={styles.category}>{item.category}</span>
+                    {item.category && item.category !== 'Sin categoría' ? (
+                      <span className={styles.category}>{item.category}</span>
+                    ) : null}
                     <h2 className={styles.name}>{item.name}</h2>
-                    <p className={styles.price}>Precio unitario:${item.price.toFixed(2)}</p>
-                    <p className={styles.stock}>Stock disponible: {item.stock}</p>
+                    <p className={styles.price}>Precio unitario: {formatCOP(item.price)}</p>
+                    <p className={styles.stock}>Stock disponible: {item.stockQty ?? item.stock}</p>
+                    {item.sku ? <p className={styles.stock}>SKU: {item.sku}</p> : null}
                     <p className={styles.subtotal}>
                       <span className={styles.subtotalLabel}>Subtotal:</span>{' '}
-                      {formatCOP(itemSubtotal)}
+                      {formatCOP(item.lineTotal ?? itemSubtotal)}
                     </p>
                   </div>
 
@@ -78,7 +83,9 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
                       <button
                         type="button"
                         className={styles.btnQuantity}
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        onClick={() =>
+                          updateCartItemQuantity(item.productId ?? item.id, item.quantity - 1)
+                        }
                         disabled={item.quantity <= 1}
                       >
                         -
@@ -87,8 +94,10 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
                       <button
                         type="button"
                         className={styles.btnQuantity}
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                        disabled={item.quantity >= item.stock}
+                        onClick={() =>
+                          updateCartItemQuantity(item.productId ?? item.id, item.quantity + 1)
+                        }
+                        disabled={item.quantity >= (item.stockQty ?? item.stock)}
                       >
                         +
                       </button>
@@ -97,7 +106,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
                     <button
                       type="button"
                       className={styles.btnRemove}
-                      onClick={() => onRemoveItem(item.id)}
+                      onClick={() => removeCartItem(item.productId ?? item.id)}
                     >
                       Eliminar
                     </button>
@@ -112,6 +121,11 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
           <h2 className={styles.summaryTitle}>Resumen</h2>
 
           <div className={styles.summaryRows}>
+            <div className={styles.summaryRow}>
+              <span>Cart ID</span>
+              <span className={styles.summaryValue}>{cart.id}</span>
+            </div>
+
             <div className={styles.summaryRow}>
               <span>Productos</span>
               <span className={styles.summaryValue}>{cartItems.length}</span>
@@ -128,7 +142,7 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
             </div>
           </div>
 
-          <button type="button" className={styles.btnClear} onClick={onClearCart}>
+          <button type="button" className={styles.btnClear} onClick={clearCart}>
             Vaciar carrito
           </button>
 

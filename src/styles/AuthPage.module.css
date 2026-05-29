@@ -36,6 +36,54 @@
   font-weight: 700;
 }
 
+.infoBox {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.credentialsList {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.credentialRow {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.demoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.demoActionButton {
+  border: 1px solid #93c5fd;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  background: white;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.demoActionButton:hover {
+  background: #dbeafe;
+}
+
+.demoActionButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -66,6 +114,11 @@
   border-color: var(--primary);
 }
 
+.input:disabled {
+  background: var(--gray-100);
+  cursor: not-allowed;
+}
+
 .error {
   margin: 0;
   color: var(--danger);
@@ -85,6 +138,11 @@
 
 .primaryButton:hover {
   background: var(--primary-dark);
+}
+
+.primaryButton:disabled {
+  background: var(--gray-300);
+  cursor: wait;
 }
 
 .helperText {

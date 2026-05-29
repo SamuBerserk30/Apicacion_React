@@ -1,9 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import AdminRoute from './components/AdminRoute';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import ProtectedRoute from './components/ProtectedRoute';
 import useAuth from './hooks/useAuth';
+import useCart from './hooks/useCart';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminProducts from './pages/AdminProducts';
+import AdminUsers from './pages/AdminUsers';
 import Cart from './pages/Cart';
 import CategoryProducts from './pages/CategoryProducts';
 import Checkout from './pages/Checkout';
@@ -11,156 +17,51 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import OrderConfirmation from './pages/OrderConfirmation';
 import ProductList from './pages/ProductList';
-import OrderDetail from './pages/UserOrderDetail';
 import Register from './pages/Register';
+import Unauthorized from './pages/Unauthorized';
+import UserOrderDetail from './pages/UserOrderDetail';
 import UserOrders from './pages/UserOrders';
 import UserProfile from './pages/UserProfile';
-import addressService from './services/addressService';
-import { loadSessionToken } from './utils/authStorage';
-import {
-  calculateOrderTotals,
-  getPaymentMethodById,
-  getShippingOptionById,
-} from './utils/calculateOrderTotals';
-import { CART_STORAGE_KEY, loadCartItems } from './utils/cartStorage';
-import { saveOrder } from './utils/ordersStorage';
+import orderService from './services/orderService';
+import { calculateOrderTotals } from './utils/calculateOrderTotals';
 
 import './App.css';
 
 function App() {
   const { currentUser } = useAuth();
-  const [cartItems, setCartItems] = useState(loadCartItems);
+  const { cart, cartItemCount, cartItems, clearCart } = useCart();
   const [latestOrder, setLatestOrder] = useState(null);
 
-  useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  const handleAddToCart = (product) => {
-    if (!product || !Number.isFinite(Number(product.id))) return;
-
-    setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
-      const stock =
-        Number.isFinite(Number(product.stock)) && Number(product.stock) > 0
-          ? Number(product.stock)
-          : 1;
-
-      if (!existingItem) {
-        return [
-          ...currentItems,
-          {
-            id: Number(product.id),
-            name: product.name,
-            category: product.category,
-            price: Number(product.price) || 0,
-            stock,
-            image: product.image,
-            quantity: 1,
-          },
-        ];
-      }
-
-      return currentItems.map((item) => {
-        if (item.id !== product.id) return item;
-        return { ...item, stock, quantity: Math.min(item.quantity + 1, stock) };
-      });
-    });
-  };
-
-  const handleUpdateCartItemQuantity = (productId, nextQuantity) => {
-    setCartItems((currentItems) =>
-      currentItems.flatMap((item) => {
-        if (item.id !== productId) return [item];
-        const stock =
-          Number.isFinite(Number(item.stock)) && Number(item.stock) > 0 ? Number(item.stock) : 1;
-        const normalizedQuantity = Math.max(1, Math.min(stock, Math.floor(Number(nextQuantity) || 1)));
-        return normalizedQuantity > 0 ? [{ ...item, quantity: normalizedQuantity }] : [];
-      })
-    );
-  };
-
-  const handleRemoveCartItem = (productId) => {
-    setCartItems((currentItems) => currentItems.filter((item) => item.id !== productId));
-  };
-
-  const handleClearCart = () => setCartItems([]);
-
-  // Guarda siempre en localStorage y también intenta guardar en el backend
-  const handleCompleteCheckout = async ({ customer, shippingMethodId, paymentMethodId }) => {
+  const handleCompleteCheckout = async ({
+    billingAddress,
+    customer,
+    shippingAddress,
+    billingAddressId,
+    shippingAddressId,
+  }) => {
     if (cartItems.length === 0) return null;
 
-    const totals = calculateOrderTotals(cartItems, shippingMethodId);
-    const localOrder = {
-      id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      orderNumber: `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`,
+    const totals = calculateOrderTotals(cartItems);
+    const order = await orderService.createOrderAsync({
+      cartId: cart.id,
       userId: currentUser?.id ?? '',
-      userEmail: currentUser?.email ?? '',
-      createdAt: new Date().toISOString(),
+      userEmail: currentUser?.email ?? customer?.email,
+      userFullName: currentUser?.fullName ?? customer?.fullName,
       items: cartItems.map((item) => ({ ...item })),
       customer,
-      shippingMethod: getShippingOptionById(shippingMethodId),
-      paymentMethod: getPaymentMethodById(paymentMethodId),
+      shippingAddress,
+      shippingAddressId,
+      billingAddress,
+      billingAddressId,
       totals,
-      status: 'PENDING',
-    };
+    });
 
-    // Siempre guarda en localStorage primero
-    saveOrder(localOrder);
-    setLatestOrder(localOrder);
-    setCartItems([]);
-
-    // Si hay sesión, intenta guardar en el backend también
-    const token = loadSessionToken();
-    if (token && currentUser) {
-      try {
-        // 1. Crear dirección de envío en el backend
-        const address = await addressService.createAddress({
-          line1: customer.address,
-          city: customer.city,
-          state: 'Antioquia',
-          country: 'Colombia',
-          postalCode: customer.postalCode,
-          type: 'SHIPPING',
-          isDefault: false,
-        });
-
-        // 2. Obtener el carrito del backend
-        const cartRes = await fetch('/api/v1/cart/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const cartData = await cartRes.json().catch(() => null);
-        const cartId = cartData?.id;
-
-        if (cartId && address?.id) {
-          // 3. Hacer checkout en el backend
-          await fetch('/api/v1/orders/checkout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              cartId: Number(cartId),
-              shippingAddressId: Number(address.id),
-              billingAddressId: Number(address.id),
-            }),
-          });
-        }
-      } catch {
-        // Si el backend falla, la orden ya está guardada en localStorage
-      }
-    }
-
-    return localOrder;
+    setLatestOrder(order);
+    await clearCart();
+    return order;
   };
 
   const handleBackHomeAfterOrder = () => setLatestOrder(null);
-
-  const cartItemCount = useMemo(
-    () => cartItems.reduce((total, item) => total + item.quantity, 0),
-    [cartItems]
-  );
 
   return (
     <div className="app">
@@ -171,40 +72,80 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/category/:categoryName"
-            element={<CategoryProducts cartItems={cartItems} onAddToCart={handleAddToCart} />}
-          />
+          <Route path="/category/:categoryName" element={<CategoryProducts />} />
           <Route path="/products" element={<ProductList />} />
           <Route
-            path="/cart"
+            path="/admin/products"
             element={
-              <Cart
-                cartItems={cartItems}
-                onUpdateQuantity={handleUpdateCartItemQuantity}
-                onRemoveItem={handleRemoveCartItem}
-                onClearCart={handleClearCart}
-              />
-            }
+            <AdminRoute>
+            <AdminProducts />
+           </AdminRoute>
+           }
           />
+          <Route path="/cart" element={<Cart />} />
           <Route
             path="/checkout"
             element={
-              <Checkout
-                cartItems={cartItems}
-                user={currentUser}
-                onBack={() => Navigate('/cart')}
-                onCompleteCheckout={handleCompleteCheckout}
-              />
+              <ProtectedRoute>
+                <Checkout onCompleteCheckout={handleCompleteCheckout} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/order-confirmation"
-            element={<OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />}
+            element={
+              <OrderConfirmation order={latestOrder} onBackHome={handleBackHomeAfterOrder} />
+            }
           />
-          <Route path="/user/profile" element={<UserProfile />} />
-          <Route path="/user/orders" element={<UserOrders />} />
-          <Route path="/user/orders/:orderId" element={<OrderDetail />} />
+          <Route
+            path="/user/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/orders"
+            element={
+              <ProtectedRoute>
+                <UserOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <UserOrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/access-denied" element={<Unauthorized />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <AdminRoute>
+                <AdminProducts />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsers />
+              </AdminRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -1,12 +1,27 @@
 import { useNavigate } from 'react-router-dom';
 
+import OptionalImage from '../components/OptionalImage';
+import { appConfig } from '../config';
 import styles from '../styles/OrderConfirmation.module.css';
+import { formatCOP } from '../utils/formatCOP';
 
-const formatCOP = (value) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+const formatAddressLines = (address) => {
+  if (!address) {
+    return [];
+  }
+
+  return [
+    address.line1,
+    address.line2,
+    [address.city, address.state].filter(Boolean).join(', '),
+    [address.country, address.postalCode].filter(Boolean).join(' - '),
+  ].filter(Boolean);
+};
 
 function OrderConfirmation({ order, onBackHome }) {
   const navigate = useNavigate();
+  const isRemoteMode = appConfig.useRemoteApi;
+
   const handleBackHome = () => {
     onBackHome();
     navigate('/');
@@ -36,78 +51,135 @@ function OrderConfirmation({ order, onBackHome }) {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
+  const hasCartId = Boolean(String(order.cartId ?? '').trim());
+  const shippingAddressLines = formatAddressLines(order.shippingAddress);
+  const billingAddressLines = formatAddressLines(order.billingAddress);
 
   return (
-     <section className={styles.container}>
+    <section className={styles.container}>
       <div className={styles.card}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Compra confirmada</h1>
-          <p className={styles.subtitle}>Tu pedido fue registrado correctamente.</p>
-        </header>
+        <p className={styles.eyebrow}>Compra confirmada</p>
+        <h1 className={styles.title}>Tu pedido quedó registrado</h1>
+        <p className={styles.subtitle}>
+          {isRemoteMode
+            ? 'Guarda este resumen para seguimiento. El carrito ya se vació y la orden quedó registrada en el backend.'
+            : 'Guarda este resumen para seguimiento. El carrito ya se vació y la orden quedó persistida localmente.'}
+        </p>
 
         <div className={styles.metaGrid}>
-          <div>
+          <div className={styles.metaCard}>
             <span className={styles.metaLabel}>Orden</span>
-            <p className={styles.metaValue}>{order.id}</p>
+            <strong className={styles.metaValue}>{order.orderNumber || order.id}</strong>
           </div>
-          <div>
+          <div className={styles.metaCard}>
             <span className={styles.metaLabel}>Fecha</span>
-            <p className={styles.metaValue}>{formattedDate}</p>
+            <strong className={styles.metaValue}>{formattedDate}</strong>
           </div>
-          <div>
-            <span className={styles.metaLabel}>Envio</span>
-            <p className={styles.metaValue}>{order.shippingMethod.label}</p>
+          <div className={styles.metaCard}>
+            <span className={styles.metaLabel}>Estado</span>
+            <strong className={styles.metaValue}>{order.status}</strong>
           </div>
-          <div>
-            <span className={styles.metaLabel}>Pago</span>
-            <p className={styles.metaValue}>{order.paymentMethod.label}</p>
-          </div>
+          {hasCartId ? (
+            <div className={styles.metaCard}>
+              <span className={styles.metaLabel}>Cart ID</span>
+              <strong className={styles.metaValue}>{order.cartId}</strong>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={styles.layout}>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Cliente</h2>
+            <div className={styles.infoList}>
+              <p>
+                <strong>{order.customer.fullName}</strong>
+              </p>
+              <p>{order.customer.email}</p>
+              <p>{order.customer.phone}</p>
+              {shippingAddressLines.length === 0 ? <p>{order.customer.address}</p> : null}
+              {shippingAddressLines.length === 0 ? (
+                <p>
+                  {order.customer.city} - {order.customer.postalCode}
+                </p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Direcciones</h2>
+            <div className={styles.infoList}>
+              <p>
+                <strong>Envío</strong>
+              </p>
+              {(shippingAddressLines.length > 0
+                ? shippingAddressLines
+                : ['Sin dirección de envío']
+              ).map((line) => (
+                <p key={`shipping-${line}`}>{line}</p>
+              ))}
+              <p>
+                <strong>Facturación</strong>
+              </p>
+              {(billingAddressLines.length > 0
+                ? billingAddressLines
+                : ['Sin dirección de facturación']
+              ).map((line) => (
+                <p key={`billing-${line}`}>{line}</p>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Items</h2>
+            <div className={styles.itemList}>
+              {order.items.map((item) => (
+                <article key={item.id} className={styles.item}>
+                  <OptionalImage className={styles.itemImage} src={item.image} alt={item.name} />
+                  <div className={styles.itemContent}>
+                    <h3 className={styles.itemName}>{item.name}</h3>
+                    <p className={styles.itemMeta}>
+                      {item.quantity} x {formatCOP(item.unitPrice ?? item.price)}
+                    </p>
+                  </div>
+                  <strong className={styles.itemPrice}>
+                    {formatCOP(item.lineTotal ?? item.quantity * (item.unitPrice ?? item.price))}
+                  </strong>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Datos del cliente</h2>
-          <p>{order.customer.fullName}</p>
-          <p>{order.customer.email}</p>
-          <p>{order.customer.phone}</p>
-          <p>{order.customer.address}</p>
-          <p>
-            {order.customer.city} - {order.customer.postalCode}
-          </p>
-        </section>
-
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Productos</h2>
-          <div className={styles.items}>
-            {order.items.map((item) => (
-              <article key={item.id} className={styles.item}>
-                  <img src={item.image || null} alt={item.name} className={styles.image} />
-                <div className={styles.itemInfo}>
-                  <h3 className={styles.itemName}>{item.name}</h3>
-                  <p>
-                    {item.quantity} x {formatCOP(item.price)}
-                  </p>
-                </div>
-                <strong>{formatCOP(item.quantity * item.price)}</strong>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Totales</h2>
-          <div className={styles.totals}>
-            <div><span>Subtotal</span><strong>{formatCOP(order.totals.subtotal)}</strong></div>
-            <div><span>IVA</span><strong>{formatCOP(order.totals.tax)}</strong></div>
-            <div><span>Envio</span><strong>{formatCOP(order.totals.shipping)}</strong></div>
-            <div className={styles.totalFinal}><span>Total</span><strong>{formatCOP(order.totals.total)}</strong></div>
+          <div className={styles.totalRows}>
+            <div className={styles.totalRow}>
+              <span>Subtotal</span>
+              <strong>{formatCOP(order.totals.subtotal)}</strong>
+            </div>
+            <div className={styles.totalRow}>
+              <span>IVA</span>
+              <strong>{formatCOP(order.totals.tax)}</strong>
+            </div>
+            <div className={styles.totalRow}>
+              <span>Envío</span>
+              <strong>{formatCOP(order.totals.shipping)}</strong>
+            </div>
+            <div className={`${styles.totalRow} ${styles.totalRowStrong}`}>
+              <span>Total final</span>
+              <strong>{formatCOP(order.totals.total)}</strong>
+            </div>
           </div>
         </section>
-        <button type="button" className={styles.secondaryButton} onClick={handleViewOrders}>
-          Ver mis órdenes
-        </button>
-        <button type="button" className={styles.primaryButton} onClick={handleBackHome}>
-          Volver al inicio
-        </button>
+
+        <div className={styles.actions}>
+          <button type="button" className={styles.secondaryButton} onClick={handleViewOrders}>
+            Ver historial
+          </button>
+          <button type="button" className={styles.primaryButton} onClick={handleBackHome}>
+            Volver al inicio
+          </button>
+        </div>
       </div>
     </section>
   );
